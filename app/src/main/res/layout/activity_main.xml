@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/dashBoardToolbar"
+            android:layout_width="match_parent"
+            app:title="Dashboard"
+            app:titleTextColor="@color/text_black"
+            android:layout_marginStart="20dp"
+            android:layout_height="?attr/actionBarSize"></com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:textColor="@color/text_black"
+            android:text="Sort By : ">
+        </TextView>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/sortByRecyclerview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+          ></androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
+
+<!--    <ScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent">-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:weightSum="4"
+            android:orientation="horizontal">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/displayFileDataRecyclerview"
+                android:layout_width="wrap_content"
+                android:layout_weight="3"
+                android:layout_height="wrap_content">
+            </androidx.recyclerview.widget.RecyclerView>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:layout_marginEnd="2dp"
+                android:orientation="vertical">
+                <Button
+                    android:id="@+id/inspectionBTN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start\nInspection"
+                    android:gravity="center"
+                    android:textColor="@color/text_black"
+                    android:textAllCaps="false">
+                </Button>
+                <Button
+                    android:id="@+id/uploadBTN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_black">
+                </Button>
+            </LinearLayout>
+        </LinearLayout>
+<!--    </ScrollView>-->
+</LinearLayout>
