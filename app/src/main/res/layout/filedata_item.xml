@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="10dp"
     android:background="@drawable/filedata_background"
@@ -43,15 +43,16 @@
         android:layout_marginStart="2dp"
         android:layout_marginTop="5dp"
         android:layout_toRightOf="@id/fileImage_iv"
-        android:text="Component"
+        android:text="Component : Flange"
         android:textColor="@color/text_black"></TextView>
 
     <TextView
         android:id="@+id/fileSiteLocation_TV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/fileComponent_TV"
-        android:text="Site Location"
+        android:layout_below="@id/fileImage_iv"
+        android:text="Site / Location : Delhi"
+        android:layout_marginTop="8dp"
         android:textColor="@color/text_black"></TextView>
 
     <TextView
@@ -59,13 +60,28 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/fileSiteLocation_TV"
-        android:text="Facility"
+        android:text="Facility : New One"
+        android:textColor="@color/text_black"></TextView>
+
+    <TextView
+        android:id="@+id/fileDuration_TV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fileFacility_TV"
+        android:text="Duration : 22:99"
+        android:textColor="@color/text_black"></TextView>
+    <TextView
+        android:id="@+id/fileNotes_TV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fileDuration_TV"
+        android:text="Notes : Null"
         android:textColor="@color/text_black"></TextView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/fileFacility_TV"
+        android:layout_below="@id/fileNotes_TV"
         android:weightSum="3"
         android:orientation="horizontal">
 

@@ -48,10 +48,6 @@ public class FacilityAdapter extends RecyclerView.Adapter<FacilityAdapter.holder
                 context.startActivity(intent);
             }
         });
-
-
-
-
     }
 
     @Override

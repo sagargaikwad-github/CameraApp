@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -17,18 +20,29 @@ import java.util.ArrayList;
 
 public class ComponentActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     Spinner spinner;
-    String [] componentList={"None","Flange","Valve","Valve-Check","Pump","Compressor","Valve-T"};
-
+    Button startCameraBTN;
+    String [] componentList={"Select Component","Flange","Valve","Valve-Check","Pump","Compressor","Valve-T"};
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_component);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         toolBar();
         findIds();
         setAdapter();
+
+
+        startCameraBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(ComponentActivity.this,CameraActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void setAdapter() {
@@ -39,8 +53,12 @@ public class ComponentActivity extends AppCompatActivity implements AdapterView.
     private void findIds() {
         spinner=findViewById(R.id.componentTypeSpinner);
         spinner.setOnItemSelectedListener(this);
-
+        startCameraBTN=findViewById(R.id.startCameraBTN);
     }
+
+
+
+
 
     private void toolBar() {
         Toolbar toolbar = findViewById(R.id.component_Toolbar);
@@ -66,4 +84,5 @@ public class ComponentActivity extends AppCompatActivity implements AdapterView.
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
+
 }

@@ -36,10 +36,8 @@ public class FileDataAdapter extends RecyclerView.Adapter<FileDataAdapter.holder
     public void onBindViewHolder(@NonNull holder holder, int position) {
         fileData_modelData temp=arrayList.get(position);
 
-
-
         holder.filename.setText("File Name :\n  "+temp.getFilename());
-        holder.dateTime.setText("Date & Time :\n 11/02/2022 11:09 AM");
+        holder.dateTime.setText("Date & Time :\n "+temp.getDateTime());
         holder.component.setText("Component : "+temp.getComponent());
         holder.location.setText("Site/Location : "+temp.getLocation());
         holder.facility.setText("Facility : "+temp.getFacility());

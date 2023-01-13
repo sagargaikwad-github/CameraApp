@@ -1,11 +1,14 @@
 package com.eits.cameraappdesign.model;
 
+import java.util.Date;
+
 public class fileData_modelData {
     String filename,component,location,facility;
-    int dateTime,average;
+    Date dateTime;
+    int average;
     double min,max;
 
-    public fileData_modelData(String filename, String component, String location, String facility, int dateTime, double min, double max, int average) {
+    public fileData_modelData(String filename, String component, String location, String facility, Date dateTime, double min, double max, int average) {
         this.filename = filename;
         this.component = component;
         this.location = location;
@@ -48,11 +51,11 @@ public class fileData_modelData {
         this.facility = facility;
     }
 
-    public int getDateTime() {
+    public Date getDateTime() {
         return dateTime;
     }
 
-    public void setDateTime(int dateTime) {
+    public void setDateTime(Date dateTime) {
         this.dateTime = dateTime;
     }
 
