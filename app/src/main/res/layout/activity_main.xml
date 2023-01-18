@@ -21,14 +21,14 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
         android:weightSum="2">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_weight="1.8"
             android:orientation="vertical">
 
@@ -48,13 +48,23 @@
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/sortByRecyclerview"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/folderEmptyTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:textSize="22sp"
+                android:textColor="@color/text_black"
+                android:visibility="visible"
+                android:text="Video Folder are Empty"></TextView>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/displayFileDataRecyclerview"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
 
         </LinearLayout>
@@ -62,6 +72,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:layout_gravity="center"
             android:layout_marginEnd="2dp"
             android:layout_weight="0.2"
@@ -79,7 +90,7 @@
 
             <Button
                 android:id="@+id/uploadBTN"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:gravity="center"

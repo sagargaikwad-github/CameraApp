@@ -27,6 +27,8 @@ android {
     }
 }
 
+
+
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.5.1'
@@ -42,5 +44,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     implementation 'com.github.bumptech.glide:glide:4.14.2'
+
+
+    //ffm peg file
+    implementation 'net.bramp.ffmpeg:ffmpeg:0.7.0'
 
 }

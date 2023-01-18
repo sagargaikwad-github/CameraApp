@@ -26,7 +26,6 @@ public class SortByAdapter extends RecyclerView.Adapter<SortByAdapter.holder> {
     holder lastClickHolder;
     SortBy_Interface sortBy_interface;
 
-
     public SortByAdapter(ArrayList<sortBy_modelData> arrayList, SortBy_Interface sortBy_interface) {
         this.arrayList = arrayList;
         this.sortBy_interface = sortBy_interface;

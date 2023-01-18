@@ -15,14 +15,27 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.eits.cameraappdesign.model.ComponentModel;
+import com.eits.cameraappdesign.model.SqliteModel;
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.util.ArrayList;
 
 
 public class ComponentActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     Spinner spinner;
     Button startCameraBTN;
-    String [] componentList={"Select Component","Flange","Valve","Valve-Check","Pump","Compressor","Valve-T"};
+    ArrayList<ComponentModel>ComponentList=new ArrayList<>();
+    String[] componentArray;
+    SqliteModel sqliteModel;
 
+    TextInputEditText siteLocation;
+    TextInputEditText note;
+
+    int FacId;
+    int SpinnerSelectedItem;
+    String SiteLocation=null;
+    String Note=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +43,20 @@ public class ComponentActivity extends AppCompatActivity implements AdapterView.
         setContentView(R.layout.activity_component);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        sqliteModel=new SqliteModel(this);
+
+        Bundle getValues=getIntent().getExtras();
+        FacId=getValues.getInt("FacID");
+
+
+        ComponentList=sqliteModel.getComponentData();
+        componentArray=new String[ComponentList.size()];
+
+        for(int i=0;i<ComponentList.size();i++)
+        {
+            componentArray[i]=ComponentList.get(i).getCompName();
+        }
 
         toolBar();
         findIds();
@@ -40,13 +67,29 @@ public class ComponentActivity extends AppCompatActivity implements AdapterView.
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(ComponentActivity.this,CameraActivity.class);
-                startActivity(intent);
+                if(SpinnerSelectedItem==0)
+                {
+                    Toast.makeText(ComponentActivity.this, "Choose Component from Dropdown", Toast.LENGTH_SHORT).show();
+                }else
+                {
+                    SiteLocation=siteLocation.getText().toString();
+                    Note=note.getText().toString();
+
+                    intent.putExtra("FacID",FacId);
+                    intent.putExtra("CompID",SpinnerSelectedItem);
+                    intent.putExtra("SiteLocation",SiteLocation);
+                    intent.putExtra("Note",Note);
+
+
+                    startActivity(intent);
+                }
+
             }
         });
     }
 
     private void setAdapter() {
-        ArrayAdapter spinnerAdapter=new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,componentList);
+        ArrayAdapter spinnerAdapter=new ArrayAdapter(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,componentArray);
         spinner.setAdapter(spinnerAdapter);
     }
 
@@ -54,9 +97,10 @@ public class ComponentActivity extends AppCompatActivity implements AdapterView.
         spinner=findViewById(R.id.componentTypeSpinner);
         spinner.setOnItemSelectedListener(this);
         startCameraBTN=findViewById(R.id.startCameraBTN);
+
+        siteLocation=findViewById(R.id.componentLocation_EditText);
+        note=findViewById(R.id.componentNote_EditText);
     }
-
-
 
 
 
@@ -77,12 +121,13 @@ public class ComponentActivity extends AppCompatActivity implements AdapterView.
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        Toast.makeText(this, componentList[i], Toast.LENGTH_SHORT).show();
+        SpinnerSelectedItem=ComponentList.get(i).getCompId();
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
+
 
 }

@@ -5,13 +5,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
      android:background="@drawable/sort_by_background"
     android:layout_marginBottom="5dp"
-    android:orientation="vertical"
-    android:padding="5dp">
+    android:padding="4dp"
+    android:orientation="vertical">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardMaxElevation="12dp">
+            app:cardMaxElevation="1dp">
                 <TextView
                     android:id="@+id/facility_item_TV"
                     android:layout_width="match_parent"

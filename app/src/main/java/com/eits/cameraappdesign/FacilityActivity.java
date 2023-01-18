@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.eits.cameraappdesign.adapter.FacilityAdapter;
+import com.eits.cameraappdesign.model.FacilityModel;
+import com.eits.cameraappdesign.model.SqliteModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputEditText;
@@ -37,15 +39,11 @@ public class FacilityActivity extends AppCompatActivity {
     TextView facilityTV;
     RecyclerView facilityRV;
     FacilityAdapter facilityAdapter;
-    ArrayList<String> facilityList = new ArrayList<>();
-
-    SharedPreferences sharedPreferences;
-    SharedPreferences.Editor EditList;
-    Gson gson = new Gson();
+    ArrayList<FacilityModel> facilityList = new ArrayList<>();
 
     Parcelable recyclerViewState;
 
-
+    SqliteModel sqliteModel;
 
 
 
@@ -54,8 +52,7 @@ public class FacilityActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_facility);
 
-        sharedPreferences = getSharedPreferences("FacilityList", MODE_PRIVATE);
-        EditList = sharedPreferences.edit();
+        sqliteModel=new SqliteModel(this);
 
     }
 
@@ -63,18 +60,15 @@ public class FacilityActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        String json = sharedPreferences.getString(TAG, "");
-        Type type = new TypeToken<List<String>>() {
-        }.getType();
-        facilityList = gson.fromJson(json, type);
 
         toolBar();
         findIds();
         buttonClicks();
 
-        if (!(facilityList == null)) {
-            setAdapterData();
+        facilityList=sqliteModel.getFacilityData();
 
+        if (!(facilityList.isEmpty())) {
+            setAdapterData();
         } else {
             facilityList = new ArrayList<>();
             facilityTV.setText("Add Facility from add Button : ");
@@ -82,6 +76,9 @@ public class FacilityActivity extends AppCompatActivity {
     }
 
     private void setAdapterData() {
+        facilityList.clear();
+        facilityList=sqliteModel.getFacilityData();
+
         facilityTV.setText("Select Facility from List : ");
 
         facilityRV.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, true));
@@ -95,8 +92,6 @@ public class FacilityActivity extends AppCompatActivity {
         } catch (Exception e) {
 
         }
-
-
     }
 
     private void buttonClicks() {
@@ -137,17 +132,15 @@ public class FacilityActivity extends AppCompatActivity {
         bottomSheetSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String getVal = bottomSheetEditText.getText().toString().trim();
-                if (getVal.isEmpty()) {
-                    Toast.makeText(FacilityActivity.this, "Add Something Facility", Toast.LENGTH_SHORT).show();
+                String facilityText = bottomSheetEditText.getText().toString().trim();
+                if (facilityText.isEmpty()) {
+
                 } else {
-                    facilityList.add(getVal);
-                    String json = gson.toJson(facilityList);
-
-                    EditList.putString(TAG, json);
-                    EditList.commit();
-
-                    Toast.makeText(FacilityActivity.this, "Save", Toast.LENGTH_SHORT).show();
+                     Boolean isDataAdded = sqliteModel.addInFacility(facilityText);
+                     if(isDataAdded==true)
+                     {
+                         Toast.makeText(FacilityActivity.this, "Facility Added", Toast.LENGTH_SHORT).show();
+                     }
                     setAdapterData();
                     bottomSheetDialog.dismiss();
                 }

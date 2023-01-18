@@ -15,15 +15,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.eits.cameraappdesign.ComponentActivity;
 import com.eits.cameraappdesign.FacilityActivity;
 import com.eits.cameraappdesign.R;
+import com.eits.cameraappdesign.model.FacilityModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FacilityAdapter extends RecyclerView.Adapter<FacilityAdapter.holder> {
     Context context;
-    ArrayList<String> arrayList;
+    ArrayList<FacilityModel> arrayList;
 
-    public FacilityAdapter(Context context, ArrayList<String> arrayList) {
+    public FacilityAdapter(Context context, ArrayList<FacilityModel> arrayList) {
         this.context = context;
         this.arrayList = arrayList;
     }
@@ -39,12 +40,13 @@ public class FacilityAdapter extends RecyclerView.Adapter<FacilityAdapter.holder
     @Override
     public void onBindViewHolder(@NonNull holder holder, @SuppressLint("RecyclerView") int position) {
 
-        holder.facility_item_TV.setText(arrayList.get(position));
+        holder.facility_item_TV.setText(arrayList.get(position).getFacName());
 
         holder.facility_item_TV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(context, ComponentActivity.class);
+                intent.putExtra("FacID",arrayList.get(position).getFacID());
                 context.startActivity(intent);
             }
         });

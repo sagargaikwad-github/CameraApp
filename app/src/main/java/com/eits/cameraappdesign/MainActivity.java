@@ -5,38 +5,32 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.annotation.SuppressLint;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.eits.cameraappdesign.Interface.SortBy_Interface;
-import com.eits.cameraappdesign.adapter.FileDataAdapter;
 import com.eits.cameraappdesign.adapter.SortByAdapter;
 import com.eits.cameraappdesign.adapter.VideoAdapter;
+import com.eits.cameraappdesign.model.FileModel;
+import com.eits.cameraappdesign.model.SqliteModel;
 import com.eits.cameraappdesign.model.VideoModel;
-import com.eits.cameraappdesign.model.fileData_modelData;
 import com.eits.cameraappdesign.model.sortBy_modelData;
 
 import java.io.File;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements SortBy_Interface {
-
     RecyclerView sortByRecyclerView, displayFileDataRecyclerview;
+    TextView folderEmpty;
     SortByAdapter sortByAdapter;
-    FileDataAdapter fileDataAdapter;
+
 
     VideoAdapter videoAdapter;
 
@@ -44,24 +38,22 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
     Button inspectionBTN, uploadBTN;
 
     ArrayList<sortBy_modelData> sortBy_List = new ArrayList<>();
-    ArrayList<fileData_modelData> fileData_List = new ArrayList<>();
+
     ArrayList<VideoModel> video_List = new ArrayList<>();
-
-
-
+    ArrayList<FileModel>sqLiteArrayList=new ArrayList<>();
+    ArrayList<FileModel>tempList=new ArrayList<>();
+    SqliteModel sqliteModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        sqliteModel = new SqliteModel(this);
+
         AllArrayListsData();
         findIds();
-        setAdapterData();
         buttonClicks();
-
-
-
     }
 
     @Override
@@ -69,51 +61,65 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         super.onResume();
 
         getVideosList();
+        setAdapterData();
 
-        displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
-        videoAdapter = new VideoAdapter(video_List, this);
-        displayFileDataRecyclerview.setAdapter(videoAdapter);
+
+        checkVideoExistOrNot();
+    }
+
+    private void checkVideoExistOrNot() {
+        SqliteModel sqliteModel = new SqliteModel(this);
+        sqLiteArrayList = sqliteModel.getVideoFileList();
+
+        String filePath = null;
+        String path = null;
+
+        tempList.clear();
+
+        for (int i = 0; i < video_List.size(); i++) {
+            filePath = video_List.get(i).getPath();
+            for (int j = 0; j < sqLiteArrayList.size(); j++) {
+                path = sqLiteArrayList.get(j).getFilePath();
+
+                if (filePath.equals(path)) {
+                    tempList.add(sqLiteArrayList.get(j));
+                }
+            }
+        }
+
+        if(!tempList.isEmpty())
+        {
+            folderEmpty.setVisibility(View.GONE);
+            displayFileDataRecyclerview.setVisibility(View.VISIBLE);
+
+            displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
+            videoAdapter = new VideoAdapter( this,tempList);
+            displayFileDataRecyclerview.setAdapter(videoAdapter);
+        }else
+        {
+            folderEmpty.setVisibility(View.VISIBLE);
+            displayFileDataRecyclerview.setVisibility(View.INVISIBLE);
+        }
+
+
+
     }
 
     private void getVideosList() {
         video_List.clear();
-        String path="/storage/emulated/0/Download/InspRec";
-        File file=new File(path);
-        File[] files=file.listFiles();
+        String path = "/storage/emulated/0/Download/InspRec";
+        File file = new File(path);
+        File[] files = file.listFiles();
 
-        if(files!=null)
-        {
+        if (files != null) {
             Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
-            for(File file1 : files)
-            {
-                if(file1.getPath().endsWith(".mp4"))
-                {
+            for (File file1 : files) {
+                if (file1.getPath().endsWith(".mp4")) {
                     video_List.add(new VideoModel(file1.getPath()));
                 }
             }
         }
     }
-
-//    private void getVideosList() {
-//        ContentResolver contentResolver=getContentResolver();
-//        Uri uri= MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-//        String selection=MediaStore.Video.Media.DATA+" like?";
-//        String[] selectionArgs=new String[]{"%"+"InspRec"+"/%"};
-//        Cursor cursor=contentResolver.query(uri,null,selection,selectionArgs,null);
-//
-//        if(cursor!=null && cursor.moveToFirst())
-//        {
-//            do{
-//                @SuppressLint("Range") String title=cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.TITLE));
-//                VideoTitleList.add(title);
-//            }while (cursor.moveToNext());
-//        }
-//
-//        for (int i=0;i<VideoTitleList.size();i++)
-//        {
-//            System.out.println(VideoTitleList.get(i));
-//        }
-//    }
 
     private void buttonClicks() {
         inspectionBTN.setOnClickListener(new View.OnClickListener() {
@@ -135,43 +141,6 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         sortBy_List.add(new sortBy_modelData("Date", false));
         sortBy_List.add(new sortBy_modelData("Filename", false));
         sortBy_List.add(new sortBy_modelData("Facility", false));
-
-        fileData_List.add(new fileData_modelData("ABCD",
-                ".mp4",
-                "Pune",
-                "Null",
-                new Date(2022, 11, 13),
-                0.00,
-                12.00,
-                34
-        ));
-        fileData_List.add(new fileData_modelData("WXYZ",
-                ".mp4",
-                "Pune",
-                "Null",
-                new Date(2021, 01, 29),
-                0.00,
-                12.00,
-                34
-        ));
-        fileData_List.add(new fileData_modelData("LMNP",
-                ".mp4",
-                "Pune",
-                "Null",
-                new Date(2000, 8, 31),
-                0.00,
-                12.00,
-                34
-        ));
-        fileData_List.add(new fileData_modelData("STUV",
-                ".mp4",
-                "Pune",
-                "Null",
-                new Date(2016, 06, 19),
-                0.00,
-                12.00,
-                34
-        ));
     }
 
     private void findIds() {
@@ -179,6 +148,9 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         displayFileDataRecyclerview = findViewById(R.id.displayFileDataRecyclerview);
         inspectionBTN = findViewById(R.id.inspectionBTN);
         uploadBTN = findViewById(R.id.uploadBTN);
+
+        folderEmpty = findViewById(R.id.folderEmptyTV);
+
     }
 
     private void setAdapterData() {
@@ -186,23 +158,20 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         sortByAdapter = new SortByAdapter(sortBy_List, this);
         sortByRecyclerView.setAdapter(sortByAdapter);
 
-//        displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
-//        fileDataAdapter = new FileDataAdapter(fileData_List);
-//        displayFileDataRecyclerview.setAdapter(fileDataAdapter);
     }
 
-    public void FindSortList(ArrayList<fileData_modelData> arrayList, String name) {
-        Collections.sort(arrayList, new Comparator<fileData_modelData>() {
+    public void FindSortList(ArrayList<FileModel> arrayList, String name) {
+        Collections.sort(arrayList, new Comparator<FileModel>() {
             @Override
-            public int compare(fileData_modelData fileData_modelData, fileData_modelData t1) {
+            public int compare(FileModel fileData, FileModel t1) {
                 if (name == "Date") {
-                    return fileData_modelData.getDateTime().compareTo(t1.getDateTime());
+                    return fileData.getFileDateTime().compareTo(t1.getFileDateTime());
                 }
                 if (name == "Filename") {
-                    return fileData_modelData.getFilename().compareTo(t1.getFilename());
+                    return fileData.getFileName().compareTo(t1.getFileName());
                 }
                 if (name == "Facility") {
-                    return fileData_modelData.getFacility().compareTo(t1.getFacility());
+                    //return fileData.getFacID().compareTo(t1.getF());
                 }
                 return 0;
             }
@@ -212,29 +181,26 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
     @Override
     public void sortBy(String s) {
 
-        ArrayList<fileData_modelData> dateSortList = new ArrayList<>(fileData_List);
-        ArrayList<fileData_modelData> filenameSortList = new ArrayList<>(fileData_List);
-        ArrayList<fileData_modelData> facilitySortList = new ArrayList<>(fileData_List);
+        ArrayList<FileModel> dateSortList = new ArrayList<>(tempList);
+        ArrayList<FileModel> filenameSortList = new ArrayList<>(tempList);
+        ArrayList<FileModel> facilitySortList = new ArrayList<>(tempList);
 
         displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
         if (s == "Date") {
             FindSortList(dateSortList, "Date");
-            fileDataAdapter = new FileDataAdapter(dateSortList);
-            displayFileDataRecyclerview.setAdapter(fileDataAdapter);
-        }
-       else if (s == "Filename") {
+            videoAdapter = new VideoAdapter(this,dateSortList);
+            displayFileDataRecyclerview.setAdapter(videoAdapter);
+        } else if (s == "Filename") {
             FindSortList(filenameSortList, "Filename");
-            fileDataAdapter = new FileDataAdapter(filenameSortList);
-            displayFileDataRecyclerview.setAdapter(fileDataAdapter);
-        }
-       else if (s == "Facility") {
+            videoAdapter = new VideoAdapter(this,filenameSortList);
+            displayFileDataRecyclerview.setAdapter(videoAdapter);
+        } else if (s == "Facility") {
             FindSortList(facilitySortList, "Facility");
-            fileDataAdapter = new FileDataAdapter(facilitySortList);
-            displayFileDataRecyclerview.setAdapter(fileDataAdapter);
-        }
-        else  {
-            fileDataAdapter = new FileDataAdapter(fileData_List);
-            displayFileDataRecyclerview.setAdapter(fileDataAdapter);
+            videoAdapter = new VideoAdapter(this,facilitySortList);
+            displayFileDataRecyclerview.setAdapter(videoAdapter);
+        } else {
+            videoAdapter = new VideoAdapter(this,tempList);
+            displayFileDataRecyclerview.setAdapter(videoAdapter);
         }
     }
 
@@ -251,6 +217,8 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     }
+
+
 }
 
 
