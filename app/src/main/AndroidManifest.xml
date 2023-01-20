@@ -25,23 +25,23 @@
         <activity
             android:name=".VideoPlayActivity"
             android:exported="false"
-            android:screenOrientation="sensorLandscape"/>
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".CameraActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ComponentActivity"
             android:exported="false"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="landscape" />
         <activity
             android:name=".FacilityActivity"
             android:exported="false"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="landscape" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

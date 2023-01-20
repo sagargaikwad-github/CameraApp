@@ -28,7 +28,7 @@ public class SqliteModel extends SQLiteOpenHelper {
 
         String video_table = "create table VideoFile(fileName text," +
                 "fileDateTime text,compID Integer,facID Integer,fileSiteLocation String,fileMin float,fileMax float," +
-                "fileAverage float,filePath text,fileDuration float,fileNote text)";
+                "fileAverage float,filePath text,fileDuration text,fileNote text)";
         sqLiteDatabase.execSQL(video_table);
 
         sqLiteDatabase.execSQL("insert into Component Values(0,'None')");
@@ -85,7 +85,7 @@ public class SqliteModel extends SQLiteOpenHelper {
         ArrayList<FacilityModel> arrayList = new ArrayList<>();
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
 
-        Cursor cursor = sqLiteDatabase.rawQuery("select * from Facility", null);
+        Cursor cursor = sqLiteDatabase.rawQuery("select * from Facility ORDER BY FacID desc", null);
         if (cursor.moveToFirst()) {
             do {
                 int facId = cursor.getInt(0);
@@ -105,7 +105,7 @@ public class SqliteModel extends SQLiteOpenHelper {
                                   Integer compID, Integer facID,
                                   String fileSiteLocation,
                                   float fileMin, float fileMax, float fileAverage,
-                                  String filePath, float fileDuration, String fileNote) {
+                                  String filePath, String fileDuration, String fileNote) {
 
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
@@ -148,7 +148,7 @@ public class SqliteModel extends SQLiteOpenHelper {
                 float fileMax = cursor.getFloat(6);
                 float fileAverage = cursor.getFloat(7);
                 String filePath = cursor.getString(8);
-                float fileDuration = cursor.getFloat(9);
+                String fileDuration = cursor.getString(9);
                 String fileNote = cursor.getString(10);
 
                 arrayList.add(new FileModel(fileName,fileDateTime,compID,facID,fileSiteLocation,

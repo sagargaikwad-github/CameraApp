@@ -14,7 +14,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.MediaController;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 public class VideoPlayActivity extends AppCompatActivity {
@@ -80,7 +79,6 @@ public class VideoPlayActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopPosition = videoView.getCurrentPosition();
-
     }
 
 

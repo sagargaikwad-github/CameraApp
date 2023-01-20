@@ -89,15 +89,15 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.holder> {
             Glide.with(context)
                     .load(tempList.get(position).getFilePath())
                     .into(holder.fileImage_iv);
-            holder.dateTime.setText("Date & Time : " + tempList.get(position).getFileDateTime());
+            holder.dateTime.setText("Date & Time : \n " + tempList.get(position).getFileDateTime());
             holder.component.setText("Component : " +Component);
             holder.location.setText("Site/Location : " + tempList.get(position).getFileSiteLocation());
             holder.facility.setText("Facility : " +Facility);
             holder.duration.setText("Video Duration : " + tempList.get(position).getFileDuration());
-            holder.notes.setText("Notes : \n" + tempList.get(position).getFileNote());
-            holder.min.setText("Min : \n" + tempList.get(position).getFileMin());
-            holder.max.setText("Max : \n" + tempList.get(position).getFileMax());
-            holder.average.setText("Average : \n" + tempList.get(position).getFileAverage());
+            holder.notes.setText("Notes : " + tempList.get(position).getFileNote());
+            holder.min.setText("Min : " + tempList.get(position).getFileMin());
+            holder.max.setText("Max : " + tempList.get(position).getFileMax());
+            holder.average.setText("Average : " + tempList.get(position).getFileAverage());
       //  }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -109,7 +109,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.holder> {
                     intent.putExtra("VideoUrl", tempList.get(position).getFilePath());
                     context.startActivity(intent);
                 } else {
-                    Toast.makeText(context, "Video Error , Can't Play", Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(context, "Video Error , Can't Play", Toast.LENGTH_SHORT).show();
                 }
             }
         });

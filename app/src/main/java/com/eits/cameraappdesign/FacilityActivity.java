@@ -2,6 +2,7 @@ package com.eits.cameraappdesign;
 
 
 import static android.content.ContentValues.TAG;
+import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -81,7 +82,7 @@ public class FacilityActivity extends AppCompatActivity {
 
         facilityTV.setText("Select Facility from List : ");
 
-        facilityRV.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, true));
+        facilityRV.setLayoutManager(new LinearLayoutManager(this));
         facilityAdapter = new FacilityAdapter(this, facilityList);
 
         facilityRV.setAdapter(facilityAdapter);
@@ -103,16 +104,14 @@ public class FacilityActivity extends AppCompatActivity {
                 } else {
                     recyclerViewState = facilityRV.getLayoutManager().onSaveInstanceState();
                 }
-
                 bottomSheetDialog();
-
+                getWindow().setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS);
             }
         });
 
     }
 
     private void bottomSheetDialog() {
-
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
 
         BottomSheetBehavior<View> bottomSheetBehavior;
@@ -139,7 +138,7 @@ public class FacilityActivity extends AppCompatActivity {
                      Boolean isDataAdded = sqliteModel.addInFacility(facilityText);
                      if(isDataAdded==true)
                      {
-                         Toast.makeText(FacilityActivity.this, "Facility Added", Toast.LENGTH_SHORT).show();
+                      //   Toast.makeText(FacilityActivity.this, "Facility Added", Toast.LENGTH_SHORT).show();
                      }
                     setAdapterData();
                     bottomSheetDialog.dismiss();

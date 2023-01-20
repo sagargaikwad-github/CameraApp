@@ -10,10 +10,10 @@ public class FileModel {
     float fileMax;
     float fileAverage;
     String filePath;
-    float fileDuration;
+    String  fileDuration;
     String fileNote;
 
-    public FileModel(String fileName, String fileDateTime, int compID, int facID, String fileSiteLocation, float fileMin, float fileMax, float fileAverage, String filePath, float fileDuration, String fileNote) {
+    public FileModel(String fileName, String fileDateTime, int compID, int facID, String fileSiteLocation, float fileMin, float fileMax, float fileAverage, String filePath, String fileDuration, String fileNote) {
         this.fileName = fileName;
         this.fileDateTime = fileDateTime;
         this.compID = compID;
@@ -99,11 +99,11 @@ public class FileModel {
         this.filePath = filePath;
     }
 
-    public float getFileDuration() {
+    public String getFileDuration() {
         return fileDuration;
     }
 
-    public void setFileDuration(int fileDuration) {
+    public void setFileDuration(String fileDuration) {
         this.fileDuration = fileDuration;
     }
 

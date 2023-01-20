@@ -1,16 +1,22 @@
 package com.eits.cameraappdesign;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
 
 import com.eits.cameraappdesign.Interface.SortBy_Interface;
 import com.eits.cameraappdesign.adapter.SortByAdapter;
@@ -27,10 +33,12 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity implements SortBy_Interface {
+    private static final int REQUEST_STORAGE_ABOVE_R = 101;
+    private static final int REQUEST_STORAGE_ABOVE_M = 102;
+
     RecyclerView sortByRecyclerView, displayFileDataRecyclerview;
     TextView folderEmpty;
     SortByAdapter sortByAdapter;
-
 
     VideoAdapter videoAdapter;
 
@@ -40,8 +48,8 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
     ArrayList<sortBy_modelData> sortBy_List = new ArrayList<>();
 
     ArrayList<VideoModel> video_List = new ArrayList<>();
-    ArrayList<FileModel>sqLiteArrayList=new ArrayList<>();
-    ArrayList<FileModel>tempList=new ArrayList<>();
+    ArrayList<FileModel> sqLiteArrayList = new ArrayList<>();
+    ArrayList<FileModel> tempList = new ArrayList<>();
     SqliteModel sqliteModel;
 
     @Override
@@ -51,20 +59,73 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
         sqliteModel = new SqliteModel(this);
 
+
         AllArrayListsData();
         findIds();
         buttonClicks();
+        checkStoragePermissions();
+    }
+
+    private void checkStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                getVideosList();
+                checkVideoExistOrNot();
+            } else {
+                requestPermissions(new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, REQUEST_STORAGE_ABOVE_R);
+            }
+        }
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M)
+        {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                getVideosList();
+                checkVideoExistOrNot();
+            } else {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE_ABOVE_M);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_STORAGE_ABOVE_R) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getVideosList();
+                checkVideoExistOrNot();
+            } else {
+            }
+        }
+        if (requestCode==REQUEST_STORAGE_ABOVE_M)
+        {
+            if (grantResults[0]==PackageManager.PERMISSION_GRANTED)
+            {
+                getVideosList();
+                checkVideoExistOrNot();
+            }else
+            {
+                if (shouldShowRequestPermissionRationale(permissions[0])) {
+
+                } else {
+
+                }
+
+            }
+
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        getVideosList();
+
         setAdapterData();
-
-
+        getVideosList();
         checkVideoExistOrNot();
+
+
     }
 
     private void checkVideoExistOrNot() {
@@ -87,20 +148,18 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
             }
         }
 
-        if(!tempList.isEmpty())
-        {
+        if (!tempList.isEmpty()) {
             folderEmpty.setVisibility(View.GONE);
             displayFileDataRecyclerview.setVisibility(View.VISIBLE);
 
             displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
-            videoAdapter = new VideoAdapter( this,tempList);
+            videoAdapter = new VideoAdapter(this, tempList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         }else
         {
             folderEmpty.setVisibility(View.VISIBLE);
-            displayFileDataRecyclerview.setVisibility(View.INVISIBLE);
+            displayFileDataRecyclerview.setVisibility(View.GONE);
         }
-
 
 
     }
@@ -148,16 +207,13 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         displayFileDataRecyclerview = findViewById(R.id.displayFileDataRecyclerview);
         inspectionBTN = findViewById(R.id.inspectionBTN);
         uploadBTN = findViewById(R.id.uploadBTN);
-
         folderEmpty = findViewById(R.id.folderEmptyTV);
-
     }
 
     private void setAdapterData() {
         sortByRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         sortByAdapter = new SortByAdapter(sortBy_List, this);
         sortByRecyclerView.setAdapter(sortByAdapter);
-
     }
 
     public void FindSortList(ArrayList<FileModel> arrayList, String name) {
@@ -171,7 +227,10 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                     return fileData.getFileName().compareTo(t1.getFileName());
                 }
                 if (name == "Facility") {
-                    //return fileData.getFacID().compareTo(t1.getF());
+                    String facname=sqliteModel.getFacilityName(fileData.getFacID());
+                    String facname2=sqliteModel.getFacilityName(t1.getFacID());
+
+                    return facname.compareTo(facname2);
                 }
                 return 0;
             }
@@ -180,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
     @Override
     public void sortBy(String s) {
-
         ArrayList<FileModel> dateSortList = new ArrayList<>(tempList);
         ArrayList<FileModel> filenameSortList = new ArrayList<>(tempList);
         ArrayList<FileModel> facilitySortList = new ArrayList<>(tempList);
@@ -188,18 +246,18 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
         if (s == "Date") {
             FindSortList(dateSortList, "Date");
-            videoAdapter = new VideoAdapter(this,dateSortList);
+            videoAdapter = new VideoAdapter(this, dateSortList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         } else if (s == "Filename") {
             FindSortList(filenameSortList, "Filename");
-            videoAdapter = new VideoAdapter(this,filenameSortList);
+            videoAdapter = new VideoAdapter(this, filenameSortList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         } else if (s == "Facility") {
             FindSortList(facilitySortList, "Facility");
-            videoAdapter = new VideoAdapter(this,facilitySortList);
+            videoAdapter = new VideoAdapter(this, facilitySortList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         } else {
-            videoAdapter = new VideoAdapter(this,tempList);
+            videoAdapter = new VideoAdapter(this, tempList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         }
     }

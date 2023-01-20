@@ -2,6 +2,7 @@ package com.eits.cameraappdesign;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -48,6 +49,7 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -86,10 +88,12 @@ public class CameraActivity extends AppCompatActivity {
     boolean micStatus;
     TextView recordingTime;
 
+    ArrayList<Float>MinMaxAvgList;
+
     SqliteModel sqliteModel;
     int seconds;
 
-    float Min,Max,Average;
+    float Min, Max, Average;
 
 
     //This will make true if camera permissions are granted
@@ -163,7 +167,7 @@ public class CameraActivity extends AppCompatActivity {
 
         @Override
         public void onDisconnected(@NonNull CameraDevice camera) {
-            Toast.makeText(CameraActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+           // Toast.makeText(CameraActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
             camera.close();
             mCameraDevice = null;
         }
@@ -265,7 +269,7 @@ public class CameraActivity extends AppCompatActivity {
                     Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
                     if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
                             afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
-                        Toast.makeText(CameraActivity.this, "AF Locked", Toast.LENGTH_SHORT).show();
+                     //   Toast.makeText(CameraActivity.this, "AF Locked", Toast.LENGTH_SHORT).show();
                         startStillCaptureRequest();
                     }
 
@@ -285,7 +289,6 @@ public class CameraActivity extends AppCompatActivity {
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
-
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
@@ -303,14 +306,29 @@ public class CameraActivity extends AppCompatActivity {
     boolean flashStatus = false;
 
     @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        View decorView = getWindow().getDecorView();
+        if (hasFocus) {
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_camera);
 
         checkCameraPermissions();
 
-        sqliteModel=new SqliteModel(CameraActivity.this);
+        MinMaxAvgList=new ArrayList<>();
+
+        sqliteModel = new SqliteModel(CameraActivity.this);
 
         mTextureView = findViewById(R.id.textureView);
 
@@ -340,8 +358,6 @@ public class CameraActivity extends AppCompatActivity {
         mRecordImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                view.setEnabled(false);
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
                             PackageManager.PERMISSION_GRANTED) {
@@ -350,23 +366,21 @@ public class CameraActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     try {
-
                                         addDataInSqlite();
-
-
-                                    } catch (RuntimeException e) {
-                                        Toast.makeText(CameraActivity.this, "Something error occured during save a file", Toast.LENGTH_SHORT).show();
                                     }
-                                   // startPreview();
+                                    catch (RuntimeException e) {
+                                    //    Toast.makeText(CameraActivity.this, "Something error occured during save a file", Toast.LENGTH_SHORT).show();
+                                    }
+                                    // startPreview();
                                 }
                             }, 500);
-                        } else {
+                        }
+                        else {
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(CameraActivity.this, "Recording Started", Toast.LENGTH_SHORT).show();
+                                  //  Toast.makeText(CameraActivity.this, "Recording Started", Toast.LENGTH_SHORT).show();
                                     mIsRecording = true;
-
 
                                     try {
                                         createVideoFolder();
@@ -375,7 +389,6 @@ public class CameraActivity extends AppCompatActivity {
                                         e.printStackTrace();
                                     }
                                     startRecord();
-                                    view.setEnabled(true);
                                 }
                             }, 500);
 
@@ -413,11 +426,9 @@ public class CameraActivity extends AppCompatActivity {
         backBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mIsRecording)
-                {
+                if (mIsRecording) {
                     addDataInSqlite();
-                }
-                else {
+                } else {
                     onBackPressed();
                 }
             }
@@ -439,7 +450,7 @@ public class CameraActivity extends AppCompatActivity {
                     try {
                         toggleFlashModeRecord(flashStatus);
                     } catch (Exception e) {
-                        Toast.makeText(CameraActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
+                     //   Toast.makeText(CameraActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     toggleFlashMode(flashStatus);
@@ -449,70 +460,107 @@ public class CameraActivity extends AppCompatActivity {
         });
     }
 
+
     private void addDataInSqlite() {
-       try {
-           mMediaRecorder.stop();
-           mMediaRecorder.reset();
-           mRecordImageButton.setImageResource(R.drawable.record_paused);
-           mIsRecording = false;
-           //view.setEnabled(true);
-       }catch (Exception e)
-       {
-           Toast.makeText(this, "Something error occured", Toast.LENGTH_SHORT).show();
-       }
+        try {
+            mMediaRecorder.stop();
+            mMediaRecorder.reset();
+            mRecordImageButton.setImageResource(R.drawable.record_paused);
+            mIsRecording = false;
+            //view.setEnabled(true);
+        } catch (Exception e) {
+          //  Toast.makeText(this, "Something error occured", Toast.LENGTH_SHORT).show();
+        }
 
-        Max=Float.parseFloat(Counter.getText().toString());
-        Toast.makeText(CameraActivity.this, "Recording Stopped", Toast.LENGTH_SHORT).show();
+        Max = Float.parseFloat(Counter.getText().toString());
+      //  Toast.makeText(CameraActivity.this, "Recording Stopped", Toast.LENGTH_SHORT).show();
 
-        Bundle getValues=getIntent().getExtras();
-        int CompID=getValues.getInt("CompID");
-        int FacID=getValues.getInt("FacID");
-        String SiteLocation=getValues.getString("SiteLocation");
-        String Note=getValues.getString("Note");
+        Bundle getValues = getIntent().getExtras();
+        int CompID = getValues.getInt("CompID");
+        int FacID = getValues.getInt("FacID");
+        String SiteLocation = getValues.getString("SiteLocation");
+        String Note = getValues.getString("Note");
 
-        Average=(Max+Min)/2;
 
-        String path="/storage/emulated/0/Download/InspRec";
-        String tempPath=null;
-        File file=new File(path);
-        File[] files=file.listFiles();
+        String path = "/storage/emulated/0/Download/InspRec";
+        String tempPath = null;
+        File file = new File(path);
+        File[] files = file.listFiles();
 
-        if(files!=null)
-        {
-            for(File file1 : files)
-            {
-                if(file1.getPath().contains(mVideoFileName))
-                {
-                   tempPath=file1.getPath();
-                   break;
+        if (files != null) {
+            for (File file1 : files) {
+                if (file1.getPath().contains(mVideoFileName)) {
+                    tempPath = file1.getPath();
+                    break;
                 }
             }
             File filePath = new File(tempPath);
-            String fileName=filePath.getName();
+            String fileName = filePath.getName();
             String dateTime = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").
                     format(new Date(new File(tempPath).lastModified()));
-            int compId=CompID;
-            int facId=FacID;
-            String siteLocation=SiteLocation;
-            float max=Max;
-            float min=Min;
+            int compId = CompID;
+            int facId = FacID;
+            String siteLocation = SiteLocation;
 
-            float average=Average;
+            float min=MinMaxAvgList.get(0);
+            for (int i = 0; i < MinMaxAvgList.size(); i++) {
+                if (min > MinMaxAvgList.get(i))
+                    min = MinMaxAvgList.get(i);
+            }
 
-            String fileSavePath=tempPath;
-            float duration=fileDuration(filePath.getAbsolutePath());
-            String note=Note;
+            float max = MinMaxAvgList.get(0);
+            for (int i = 0; i < MinMaxAvgList.size(); i++) {
+                if (max < MinMaxAvgList.get(i))
+                    max = MinMaxAvgList.get(i);
+            }
 
-            sqliteModel.addInVideoFile(fileName,dateTime,compId,facId,siteLocation,max,min,average,fileSavePath,duration,note);
+            float total = 0;
+            float avg;
+            for(int i = 0; i < MinMaxAvgList.size(); i++)
+            {
+                total += MinMaxAvgList.get(i);
 
+            }
+            avg = total / MinMaxAvgList.size();
+            float average = avg;
+
+            System.out.println(Arrays.asList(MinMaxAvgList));
+
+            String fileSavePath = tempPath;
+            //float duration=fileDuration(filePath.getAbsolutePath());
+            int seconds = fileDuration(filePath.getAbsolutePath());
+
+            String duration;
+            int second = seconds % 60;
+            int minute = seconds / 60 % 60;
+            int hour = seconds / (60 * 60) % 24;
+
+            if (hour > 0) {
+                duration=hour+" hr "+minute+" min";
+            } else if(minute>0) {
+                duration=minute+" min "+second+" sec";
+            }else
+            {
+                duration=second+" sec";
+            }
+
+            String note = Note;
+            sqliteModel.addInVideoFile(fileName, dateTime, compId, facId, siteLocation, max, min, average, fileSavePath, duration, note);
+
+            sharedPreferences = getSharedPreferences("Component_Written_Data", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("SpinnerPosition", 0);
+            editor.putString("SiteLocation", "");
+            editor.putString("Note", "");
+            editor.apply();
 
             onBackPressed();
         }
 
 
-
     }
-    private float fileDuration(String absolutePath) {
+
+    private int fileDuration(String absolutePath) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
             retriever.setDataSource(String.valueOf(Uri.parse(absolutePath)));
@@ -520,8 +568,8 @@ public class CameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         String duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-        float d = Float.parseFloat(duration);
-        float seconds = (d / 1000);
+        int d = Integer.parseInt(duration);
+        int seconds = (d / 1000);
         retriever.release();
         return seconds;
     }
@@ -746,6 +794,9 @@ public class CameraActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+
+
+
         startBackgroundThread();
 
         //createSpeechRecognizer();
@@ -784,27 +835,8 @@ public class CameraActivity extends AppCompatActivity {
 
         countDown();
         countDownTimer.start();
-        RecordingTimer();
 
-    }
 
-    private void speechHandling(boolean b) {
-        if (b) {
-
-            mSpeechRecognizer.startListening(createIntent());
-
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("switch", "true");
-            editor.apply();
-        } else {
-            mSpeechRecognizer.stopListening();
-            mSpeechRecognizer.cancel();
-
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("switch", "false");
-            editor.apply();
-
-        }
     }
 
     private void countDown() {
@@ -813,6 +845,11 @@ public class CameraActivity extends AppCompatActivity {
             public void onTick(long l) {
                 int seconds = (int) (l / 1000);
                 Counter.setText(String.valueOf(seconds));
+
+               if(mIsRecording)
+               {
+                   MinMaxAvgList.add(Float.valueOf(Counter.getText().toString()));
+               }
             }
 
             @Override
@@ -832,9 +869,9 @@ public class CameraActivity extends AppCompatActivity {
                 isSurfaceAvailable = true;
             } else {
                 if (shouldShowRequestPermissionRationale(permissions[0])) {
-                    Toast.makeText(this, "Camera Permission Required", Toast.LENGTH_SHORT).show();
+                  //  Toast.makeText(this, "Permission Required", Toast.LENGTH_SHORT).show();
                 } else {
-                    permissionDialog("Camera");
+                    permissionDialog("Storage");
                 }
             }
         }
@@ -843,7 +880,7 @@ public class CameraActivity extends AppCompatActivity {
                 isSurfaceAvailable = true;
             } else {
                 if (shouldShowRequestPermissionRationale(permissions[0])) {
-                    Toast.makeText(this, "Camera Permission Required", Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(this, "Camera Permission Required", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
                     permissionDialog("Camera");
@@ -853,10 +890,11 @@ public class CameraActivity extends AppCompatActivity {
         }
         if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+
             } else {
                 if (shouldShowRequestPermissionRationale(permissions[0])) {
-                    Toast.makeText(this, "Permission Required to Store Files", Toast.LENGTH_SHORT).show();
+                  //  Toast.makeText(this, "Storage Permission Required", Toast.LENGTH_SHORT).show();
+                    finish();
                 } else {
                     permissionDialog("Storage");
                 }
@@ -882,9 +920,18 @@ public class CameraActivity extends AppCompatActivity {
 //        }
     }
 
+
+
     @Override
     protected void onPause() {
         super.onPause();
+
+        sharedPreferences = getSharedPreferences("Component_Written_Data", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("SpinnerPosition", 0);
+        editor.putString("SiteLocation", "");
+        editor.putString("Note", "");
+        editor.apply();
 
         countDownTimer.cancel();
 
@@ -892,15 +939,13 @@ public class CameraActivity extends AppCompatActivity {
 
         //flashStatus=false;
         //mIsRecording=false;
-        if(mIsRecording==true)
-        {
+        if (mIsRecording == true) {
             addDataInSqlite();
         }
 
         mIsRecording = false;
         mRecordImageButton.setImageResource(R.drawable.record_paused);
         //toggleFlashModeRecord(flashStatus);
-
 
 
         if (mSpeechRecognizer != null) {
@@ -925,21 +970,6 @@ public class CameraActivity extends AppCompatActivity {
         CloseCamera();
     }
 
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-
-        View decorView = getWindow().getDecorView();
-        if (hasFocus) {
-            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-    }
 
     static class CompareSizesByArea implements Comparator<Size> {
         @Override
@@ -1136,18 +1166,12 @@ public class CameraActivity extends AppCompatActivity {
                         Uri uri = Uri.fromParts("package", getPackageName(), null);
                         intent.setData(uri);
                         startActivity(intent);
-
-
                     }
                 })
                 .setNegativeButton("No, thanks", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if (name.equals("Camera")) {
-                            finish();
-                        } else if (name.equals("Audio")) {
-
-                        }
+                        finish();
                     }
                 })
                 .setCancelable(false)
@@ -1159,7 +1183,6 @@ public class CameraActivity extends AppCompatActivity {
         try {
             setUpMediaRecorder();
 
-            Min=Float.parseFloat(Counter.getText().toString());
 
             mRecordImageButton.setImageResource(R.drawable.record_resumed);
 
@@ -1184,6 +1207,7 @@ public class CameraActivity extends AppCompatActivity {
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             mRecordCaptureSession = cameraCaptureSession;
                             try {
+                                RecordingTimer();
                                 cameraCaptureSession.setRepeatingRequest(
                                         mCaptureRequestBuilder.build(), null, null);
                             } catch (CameraAccessException e) {
@@ -1202,9 +1226,10 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    private void RecordingTimer() {
 
-        Handler handler=new Handler();
+
+    private void RecordingTimer() {
+        Handler handler = new Handler();
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -1219,11 +1244,10 @@ public class CameraActivity extends AppCompatActivity {
                 if (mIsRecording) {
                     seconds++;
                     recordingTime.setText(time);
-                }else
-                {
+                } else {
                     recordingTime.setText("00:00:00");
                 }
-                handler.postDelayed(this,1000);
+                handler.postDelayed(this, 1000);
             }
         });
 
@@ -1261,7 +1285,7 @@ public class CameraActivity extends AppCompatActivity {
 
                         @Override
                         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            Toast.makeText(CameraActivity.this, "Unable to Preview", Toast.LENGTH_SHORT).show();
+                         //   Toast.makeText(CameraActivity.this, "Unable to Preview", Toast.LENGTH_SHORT).show();
                         }
                     }, null);
 
@@ -1412,9 +1436,10 @@ public class CameraActivity extends AppCompatActivity {
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
                     PackageManager.PERMISSION_GRANTED) {
+
             } else {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(this, "Please grant Video Permission", Toast.LENGTH_SHORT).show();
+                  //  Toast.makeText(this, "Please grant Permission", Toast.LENGTH_SHORT).show();
                 }
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT);
             }
@@ -1422,8 +1447,10 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("NewApi")
     private void setUpMediaRecorder() throws IOException {
-        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+
+         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
 
 
         CamcorderProfile camcorderProfile;
@@ -1438,12 +1465,14 @@ public class CameraActivity extends AppCompatActivity {
         int targetVideoBitRate = camcorderProfile.videoBitRate;
 
 
+
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mMediaRecorder.setOutputFile(mVideoFileName);
         mMediaRecorder.setVideoEncodingBitRate(targetVideoBitRate);
 
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+
         // mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         //mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mMediaRecorder.prepare();
@@ -1468,7 +1497,6 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
 
-            super.onBackPressed();
-
+        super.onBackPressed();
     }
 }
