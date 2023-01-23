@@ -5,11 +5,14 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
 
+
     <uses-feature android:name="android.hardware.camera.flash" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+
 
     <application
         android:allowBackup="true"
@@ -20,6 +23,7 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:hardwareAccelerated="true"
         android:theme="@style/Theme.CameraAppDesign"
         tools:targetApi="31">
         <activity
@@ -29,6 +33,7 @@
         <activity
             android:name=".CameraActivity"
             android:exported="false"
+
             android:screenOrientation="landscape"/>
         <activity
             android:name=".ComponentActivity"
