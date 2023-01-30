@@ -72,11 +72,14 @@ public class SqliteModel extends SQLiteOpenHelper {
         cv.put("facName", facilityText);
 
         long res = sqLiteDatabase.insert("Facility", null, cv);
+
         if (res == -1) {
             return false;
         } else {
             return true;
         }
+
+
 
     }
 

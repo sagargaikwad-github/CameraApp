@@ -1,8 +1,9 @@
 package com.eits.cameraappdesign;
 
 
+import static android.content.ContentValues.TAG;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -10,6 +11,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +22,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -31,7 +34,6 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.CamcorderProfile;
 import android.media.Image;
-import android.media.ImageReader;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -42,29 +44,29 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.Settings;
-import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import com.arthenica.mobileffmpeg.Config;
+import com.arthenica.mobileffmpeg.FFmpeg;
 import com.eits.cameraappdesign.model.SqliteModel;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -77,7 +79,12 @@ public class CameraActivity extends AppCompatActivity {
     ImageView mRecordImageButton;
     Boolean mIsRecording = false;
     File mVideoFolder;
+
     String mVideoFileName;
+    String mTempVideoFileName;
+
+
+    ProgressDialog progressDialog;
     ArrayList<String> commandListStartRecord = new ArrayList<>();
     ArrayList<String> commandListStopRecord = new ArrayList<>();
     public boolean isListening = false;
@@ -87,6 +94,8 @@ public class CameraActivity extends AppCompatActivity {
     SpeechRecognizer mSpeechRecognizer;
     boolean micStatus;
     TextView recordingTime;
+
+    String finalTime;
 
     ArrayList<Float> MinMaxAvgList;
 
@@ -151,7 +160,6 @@ public class CameraActivity extends AppCompatActivity {
             if (mIsRecording) {
 
                 createVideoFolder();
-
 
                 // Toast.makeText(MainActivity.this, String.valueOf(flashStatus), Toast.LENGTH_SHORT).show();
                 startRecord();
@@ -326,6 +334,8 @@ public class CameraActivity extends AppCompatActivity {
 
         sqliteModel = new SqliteModel(CameraActivity.this);
 
+        progressDialog=new ProgressDialog(this);
+
         mTextureView = findViewById(R.id.textureView);
 
         Counter = findViewById(R.id.Text);
@@ -361,7 +371,7 @@ public class CameraActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     try {
-                                        addDataInSqlite();
+                                        stopRecord();
                                     } catch (RuntimeException e) {
                                         //    Toast.makeText(CameraActivity.this, "Something error occured during save a file", Toast.LENGTH_SHORT).show();
                                     }
@@ -410,7 +420,7 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (mIsRecording) {
-                    addDataInSqlite();
+                    stopRecord();
                 } else {
                     onBackPressed();
                 }
@@ -444,26 +454,94 @@ public class CameraActivity extends AppCompatActivity {
     }
 
 
-    private void addDataInSqlite() {
+    private void stopRecord() {
+
+        progressDialog.setMessage("Processing Please Wait");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        countDownTimer.cancel();
+
         try {
             mMediaRecorder.stop();
             mMediaRecorder.reset();
             mRecordImageButton.setImageResource(R.drawable.record_paused);
             mIsRecording = false;
-            //view.setEnabled(true);
         } catch (Exception e) {
-            //  Toast.makeText(this, "Something error occured", Toast.LENGTH_SHORT).show();
+
         }
 
         Max = Float.parseFloat(Counter.getText().toString());
-        //  Toast.makeText(CameraActivity.this, "Recording Stopped", Toast.LENGTH_SHORT).show();
 
+        String path = "/storage/emulated/0/Download/InspRec";
+        String tempPath = null;
+        File file = new File(path);
+        File[] files = file.listFiles();
+
+        if (files != null) {
+            for (File file1 : files) {
+                if (file1.getPath().contains(mTempVideoFileName)) {
+                    tempPath = file1.getPath();
+                    break;
+                }
+            }
+
+            try {
+                TextOnVideo(tempPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+    }
+
+
+    private void TextOnVideo(String fileSavePath) throws IOException {
+        createVideoFileName();
+
+        Log.e("InputFile", fileSavePath);
+        Log.e("OutputFile", mVideoFileName);
+
+        // String cmd = "-y -i "+fileSavePath+" -vf drawtext=text="+MinMaxAvgList.get(0)+":x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:enable='between(t,5,10)' " +FFmPegOutput;
+       // String cmd = "-y -i " + fileSavePath + " -vf  fps=25 drawtext=text='Hello':x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:box=1:boxcolor=black@0.5:boxborderw=5:x=40:y=40:enable='between(t\\,1\\,5)' -c copy " + mVideoFileName;
+
+        //String a = "-y -i " + fileSavePath + " -framerate 25 -vf [in]" + text() + "[out] " + mVideoFileName;
+
+
+        String a = "-y -i " + fileSavePath + " -framerate 60 -vf [in]" + text() + "[out] " + mVideoFileName;
+        Log.e("text Value", a);
+
+        long executionId = FFmpeg.executeAsync(a, (executionId1, returnCode) -> {
+            if (returnCode == Config.RETURN_CODE_SUCCESS) {
+                addDataInSqlite();
+                progressDialog.dismiss();
+                Toast.makeText(this, "Video Saved Sucessfully", Toast.LENGTH_SHORT).show();
+                onBackPressed();
+            } else if (returnCode == Config.RETURN_CODE_CANCEL) {
+                Log.e(TAG, "Async command execution cancelled by user.");
+                progressDialog.dismiss();
+                Toast.makeText(this, "Some error Occured 1", Toast.LENGTH_SHORT).show();
+                onBackPressed();
+            } else {
+                Log.e(TAG, String.format("Async command execution failed with returnCode=%d.", returnCode));
+                Toast.makeText(this, "Some error Occured 2", Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
+                onBackPressed();
+            }
+        });
+        Log.e(TAG, "execFFmpegMergeVideo executionId-" + executionId);
+
+
+
+    }
+
+    private void addDataInSqlite() {
         Bundle getValues = getIntent().getExtras();
         int CompID = getValues.getInt("CompID");
         int FacID = getValues.getInt("FacID");
         String SiteLocation = getValues.getString("SiteLocation");
         String Note = getValues.getString("Note");
-
 
         String path = "/storage/emulated/0/Download/InspRec";
         String tempPath = null;
@@ -535,10 +613,24 @@ public class CameraActivity extends AppCompatActivity {
             editor.putString("Note", "");
             editor.apply();
 
-            onBackPressed();
+            File file1=new File(mTempVideoFileName);
+            file1.delete();
+
         }
+    }
 
-
+    private String text() {
+        String text = "";
+        for (int i = 0; i < MinMaxAvgList.size(); i++) {
+            Log.e("I Value", String.valueOf(i));
+//            text = "drawtext=text="+MinMaxAvgList.get(i)+":x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:box=1:boxcolor=black@0.5:boxborderw=5:x=40:y=40:enable='between(t\\,"+i+"\\,"+(i+1)+")'";
+            if (i < MinMaxAvgList.size() - 1) {
+                text = text + "drawtext=text=" + MinMaxAvgList.get(i) + ":x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:box=1:boxcolor=black@0.5:boxborderw=5:x=40:y=40:enable='between(t\\," + i + "\\," + (i + 1) + ")',";
+            } else {
+                text = text + "drawtext=text=" + MinMaxAvgList.get(i) + ":x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:box=1:boxcolor=black@0.5:boxborderw=5:x=40:y=40:enable='between(t\\," + i + "\\," + (i + 1) + ")'";
+            }
+        }
+        return text;
     }
 
     private int fileDuration(String absolutePath) {
@@ -567,172 +659,8 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-//    private void SpeechRecognizationFunction() {
-//        if(isListening)
-//        {
-//            handleSpeechEnd();
-//        }
-//        else {
-//            handleSpeechBegin();
-//        }
-//    }
-
-    public Intent createIntent() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN");
-        return intent;
 
 
-    }
-
-//    public void createSpeechRecognizer() {
-//        mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-//
-//        mSpeechRecognizer.setRecognitionListener(new RecognitionListener() {
-//            @Override
-//            public void onReadyForSpeech(Bundle bundle) {
-//
-//            }
-//
-//            @Override
-//            public void onBeginningOfSpeech() {
-//                isListening = true;
-//            }
-//
-//            @Override
-//            public void onRmsChanged(float v) {
-//
-//            }
-//
-//            @Override
-//            public void onBufferReceived(byte[] bytes) {
-//
-//            }
-//
-//            @Override
-//            public void onEndOfSpeech() {
-//                isListening = false;
-//                mSpeechRecognizer.startListening(createIntent());
-//            }
-//
-//            @Override
-//            public void onError(int i) {
-//                Log.e("TAG", "onError");
-//
-//                String message;
-//                switch (i) {
-//                    case SpeechRecognizer.ERROR_AUDIO:
-//                        message = "Audio recording error";
-//                        break;
-//                    case SpeechRecognizer.ERROR_CLIENT:
-//                        message = "Client side error";
-//                        isListening = false;
-//                        createSpeechRecognizer();
-//                        break;
-//                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-//                        message = "Insufficient permissions";
-//                        break;
-//                    case SpeechRecognizer.ERROR_NETWORK:
-//                        message = "Network error";
-//                        break;
-//                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-//                        message = "Network timeout";
-//                        break;
-//                    case SpeechRecognizer.ERROR_NO_MATCH:
-//                        message = "No match";
-//                        break;
-//                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-//                        message = "RecognitionService busy";
-//                        //isListening=false;
-//                        break;
-//                    case SpeechRecognizer.ERROR_SERVER:
-//                        message = "error from server";
-//                        break;
-//                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-//                        message = "No speech input";
-//                        break;
-//                    default:
-//                        message = "Didn't understand, please try again.";
-//                        break;
-//                }
-//                Log.e("ErrorPrint", message);
-//
-//                if (!isListening) {
-//                    mSpeechRecognizer.startListening(createIntent());
-//                }
-//            }
-//
-//            @Override
-//            public void onResults(Bundle bundle) {
-//                ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-//                if (matches != null && matches.size() > 0) {
-//                    String command = matches.get(0);
-//                    handleCommand(command);
-//                }
-//            }
-//
-//            @Override
-//            public void onPartialResults(Bundle bundle) {
-//                ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-//                if (matches != null && matches.size() > 0) {
-//                    String partialResult = matches.get(0);
-//                    handleCommand(partialResult);
-//                }
-//            }
-//
-//            @Override
-//            public void onEvent(int i, Bundle bundle) {
-//
-//            }
-//        });
-//    }
-
-
-//    public void handleCommand(String command) {
-//        //Toast.makeText(this, command, Toast.LENGTH_SHORT).show();
-//
-//        if (commandListStartRecord.contains(command)) {
-//            if (switchMic.isChecked()) {
-//                if (mIsRecording == false) {
-//                    Toast.makeText(this, "Recording Started", Toast.LENGTH_SHORT).show();
-//
-//                    mIsRecording = true;
-//                    mRecordImageButton.setImageResource(R.drawable.record_resumed);
-//                    try {
-//                        createVideoFileName();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                    startRecord();
-//                    mMediaRecorder.start();
-//                }
-//            }
-//
-//        } else if (commandListStopRecord.contains(command)) {
-//            if (switchMic.isChecked()) {
-//                if (mIsRecording == true) {
-//                    Toast.makeText(this, "Recording Stopped", Toast.LENGTH_SHORT).show();
-//
-//                    mIsRecording = false;
-//                    mRecordImageButton.setImageResource(R.drawable.record_paused);
-//
-//                    //toggleFlashModeRecord(flashStatus);
-//
-//                    mMediaRecorder.stop();
-//                    mMediaRecorder.reset();
-//                    startPreview();
-//
-//                }
-//            }
-//
-//        } else {
-//            System.out.println(command);
-//        }
-//
-//
-//    }
 
 
     private void toggleFlashMode(boolean flashStatus) {
@@ -815,7 +743,6 @@ public class CameraActivity extends AppCompatActivity {
         countDown();
         countDownTimer.start();
 
-
     }
 
     private void countDown() {
@@ -829,7 +756,6 @@ public class CameraActivity extends AppCompatActivity {
                     MinMaxAvgList.add(Float.valueOf(Counter.getText().toString()));
                 }
             }
-
             @Override
             public void onFinish() {
                 countDown();
@@ -917,13 +843,12 @@ public class CameraActivity extends AppCompatActivity {
         //flashStatus=false;
         //mIsRecording=false;
         if (mIsRecording == true) {
-            addDataInSqlite();
+            stopRecord();
         }
 
         mIsRecording = false;
         mRecordImageButton.setImageResource(R.drawable.record_paused);
         //toggleFlashModeRecord(flashStatus);
-
 
         if (mSpeechRecognizer != null) {
             mSpeechRecognizer.destroy();
@@ -943,7 +868,6 @@ public class CameraActivity extends AppCompatActivity {
         } else {
             flashBTN.setImageResource(R.drawable.ic_flash_off);
         }
-
         CloseCamera();
     }
 
@@ -964,13 +888,13 @@ public class CameraActivity extends AppCompatActivity {
             for (String cameraId : cameraManager.getCameraIdList()) {
                 CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
 
-
                 if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
                     continue;
                 }
+
+
                 StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 int deviceOrientation = getWindowManager().getDefaultDisplay().getRotation();
-
 
                 mTotalRotation = sensorToDeviceOrientation(cameraCharacteristics, deviceOrientation);
 
@@ -1155,28 +1079,38 @@ public class CameraActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void closePreviewSession() {
+        if (mPreviewCaptureSession != null) {
+            mPreviewCaptureSession.close();
+            mPreviewCaptureSession = null;
+        }
+    }
 
-    private void startRecord() {
+    private void startRecord()  {
+
 
         try {
+            closePreviewSession();
             setUpMediaRecorder();
-        } catch (Exception e) {
-            Toast.makeText(this, " 1 : " + e.toString(), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         mRecordImageButton.setImageResource(R.drawable.record_resumed);
 
-
         SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
-        surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-        Surface previewSurface = new Surface(surfaceTexture);
 
+        surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+
+        Surface previewSurface = new Surface(surfaceTexture);
         Surface recordSurface = mMediaRecorder.getSurface();
+
         try {
             mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
         } catch (CameraAccessException e) {
-            Toast.makeText(this, " 2 : " + e.toString(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
         }
+
         mCaptureRequestBuilder.addTarget(previewSurface);
         mCaptureRequestBuilder.addTarget(recordSurface);
 
@@ -1191,14 +1125,14 @@ public class CameraActivity extends AppCompatActivity {
                     new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            mPreviewCaptureSession=cameraCaptureSession;
                             mRecordCaptureSession = cameraCaptureSession;
                             try {
                                 RecordingTimer();
                                 cameraCaptureSession.setRepeatingRequest(
                                         mCaptureRequestBuilder.build(), null, null);
                             } catch (CameraAccessException e) {
-                                e.printStackTrace();
-                            }
+                             }
                         }
 
                         @Override
@@ -1207,7 +1141,6 @@ public class CameraActivity extends AppCompatActivity {
                         }
                     }, null);
         } catch (CameraAccessException e) {
-            Toast.makeText(this, " 3 : " + e.toString(), Toast.LENGTH_SHORT).show();
         }
 
 
@@ -1215,10 +1148,12 @@ public class CameraActivity extends AppCompatActivity {
 
 
     private void RecordingTimer() {
+
         Handler handler = new Handler();
         handler.post(new Runnable() {
             @Override
             public void run() {
+
                 int hours = seconds / 3600;
                 int minutes = (seconds % 3600) / 60;
                 int secs = seconds % 60;
@@ -1227,11 +1162,14 @@ public class CameraActivity extends AppCompatActivity {
                         "%02d:%02d:%02d", hours,
                         minutes, secs);
 
+
                 if (mIsRecording) {
                     seconds++;
                     recordingTime.setText(time);
+                    finalTime=recordingTime.getText().toString();
                 } else {
-                    recordingTime.setText("00:00:00");
+                   // recordingTime.setText("00:00:00");
+                    recordingTime.setText(finalTime);
                 }
                 handler.postDelayed(this, 1000);
             }
@@ -1242,12 +1180,16 @@ public class CameraActivity extends AppCompatActivity {
 
     private void startPreview() {
         SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
+
+
         surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
         Surface previewSurface = new Surface(surfaceTexture);
+
 
         try {
             mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mCaptureRequestBuilder.addTarget(previewSurface);
+
 
             if (flashStatus) {
                 mCaptureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
@@ -1348,6 +1290,14 @@ public class CameraActivity extends AppCompatActivity {
         mVideoFileName = file.getAbsolutePath();
     }
 
+    private void createTempFFmPEGVideoFileName() throws IOException {
+        String timestamp = new SimpleDateFormat("YYYYMMDD_HHmmss").format(new Date());
+        String fileName = "ECG-ffmpeg" + timestamp;
+
+        String filePath = mVideoFolder + File.separator + fileName + ".mp4";
+        File file = new File(filePath);
+        mTempVideoFileName = file.getAbsolutePath();
+    }
 
     private void checkWriteStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -1373,12 +1323,17 @@ public class CameraActivity extends AppCompatActivity {
     @SuppressLint("NewApi")
     private void setUpMediaRecorder() throws IOException {
 
-        createVideoFileName();
+        try {
+            createTempFFmPEGVideoFileName();
+        }catch (Exception e)
+        {
+
+        }
 
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
 
         CamcorderProfile camcorderProfile;
-        CamcorderProfile frameRateInfo;
+
 //        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 //            camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
 //        } else {
@@ -1386,22 +1341,44 @@ public class CameraActivity extends AppCompatActivity {
 //        }
 
        camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-       int targetVideoBitRate = camcorderProfile.videoBitRate;
-       int frameRate = camcorderProfile.videoFrameRate;
+        int targetVideoBitRate = camcorderProfile.videoBitRate;
 
-        Toast.makeText(this, String.valueOf(frameRate), Toast.LENGTH_SHORT).show();
+        mMediaRecorder.setOutputFile(mTempVideoFileName);
 
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-        try {
-            mMediaRecorder.setVideoFrameRate(frameRate);
-        } catch (Exception e) {
-        }
-        mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
-        mMediaRecorder.setOutputFile(mVideoFileName);
         mMediaRecorder.setVideoEncodingBitRate(targetVideoBitRate);
 
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mMediaRecorder.setVideoFrameRate(camcorderProfile.videoFrameRate);
+        //mMediaRecorder.setVideoFrameRate(20);
+        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+
+
+        System.out.println("Width : "+mVideoSize.getWidth()+" Height : "+mVideoSize.getHeight());
+        System.out.println("Width : "+camcorderProfile.videoFrameWidth+" Height : "+camcorderProfile.videoFrameHeight);
+
+
+//        Camera mCamera = Camera.open();
+//        Camera.Parameters params = mCamera.getParameters();
+//
+//        List<Camera.Size> sizes = params.getSupportedPictureSizes();
+//
+//        Camera.Size mSize = null;
+//        for (Camera.Size size : sizes) {
+//            Log.i(TAG, "Available resolution: "+size.width+" "+size.height);
+//            mSize = size;
+//        }
+//
+//        System.out.println("Size Width : "+mSize.width +"Size Height : "+mSize.height);
+
+        mMediaRecorder.setVideoSize(1920, 1080);
+
+
+       // mMediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
+        // mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+
+
         mMediaRecorder.prepare();
+
         mMediaRecorder.start();
 
 
@@ -1417,19 +1394,20 @@ public class CameraActivity extends AppCompatActivity {
 //        }
 
 
-
-
-
-
-
-
-
     }
+
+
 
 
     @Override
     public void onBackPressed() {
+        if(progressDialog.isShowing())
+        {
+            Toast.makeText(this, "Please Wait Video Processing needs to complete", Toast.LENGTH_SHORT).show();
+        }else
+        {
+            super.onBackPressed();
+        }
 
-        super.onBackPressed();
     }
 }

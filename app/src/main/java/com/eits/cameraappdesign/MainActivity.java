@@ -8,11 +8,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -75,8 +79,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 requestPermissions(new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, REQUEST_STORAGE_ABOVE_R);
             }
         }
-
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M)
+       else if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M)
         {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 getVideosList();
@@ -84,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
             } else {
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE_ABOVE_M);
             }
+        }else
+        {
         }
     }
 
@@ -95,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 getVideosList();
                 checkVideoExistOrNot();
             } else {
+                    permissionDialog("Storage");
             }
         }
         if (requestCode==REQUEST_STORAGE_ABOVE_M)
@@ -105,26 +111,19 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 checkVideoExistOrNot();
             }else
             {
-                if (shouldShowRequestPermissionRationale(permissions[0])) {
-
-                } else {
-
-                }
-
             }
 
         }
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
 
-
         setAdapterData();
         getVideosList();
         checkVideoExistOrNot();
-
 
     }
 
@@ -178,6 +177,28 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 }
             }
         }
+    }
+    private void permissionDialog(String name) {
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle(name + " permission Denied ")
+                .setMessage(name + " permission not granted. Please grant " + name + " permission from app settings.")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton("No, thanks", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                })
+                .setCancelable(false)
+                .show();
     }
 
     private void buttonClicks() {

@@ -46,7 +46,16 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.14.2'
 
 
-    //ffm peg file
-    implementation 'net.bramp.ffmpeg:ffmpeg:0.7.0'
+
+
+        implementation 'com.arthenica:mobile-ffmpeg-full:4.4'
+
+
+
+
+
+
+
+
 
 }
