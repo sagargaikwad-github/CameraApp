@@ -47,6 +47,7 @@ public class SortByAdapter extends RecyclerView.Adapter<SortByAdapter.holder> {
         String sortName = arrayList.get(position).getSortByName();
 
 
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -77,7 +78,7 @@ public class SortByAdapter extends RecyclerView.Adapter<SortByAdapter.holder> {
                     {
                        closeSame(lastClickHolder);
                        lastClickHolder=null;
-                        sortBy_interface.sortBy(null);
+                       sortBy_interface.sortBy(null);
                     }else
                     {
                         closePrevious(lastClickHolder);

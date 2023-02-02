@@ -79,8 +79,6 @@ public class SqliteModel extends SQLiteOpenHelper {
             return true;
         }
 
-
-
     }
 
     //Retrieve Facility Data

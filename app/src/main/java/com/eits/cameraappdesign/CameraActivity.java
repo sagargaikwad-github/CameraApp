@@ -51,7 +51,10 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -191,6 +194,7 @@ public class CameraActivity extends AppCompatActivity {
     Size mVideoSize;
 
     Size mImageSize;
+     View mdecorView;
     //private ImageReader mImageReader;
 //    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
 //        @Override
@@ -334,7 +338,7 @@ public class CameraActivity extends AppCompatActivity {
 
         sqliteModel = new SqliteModel(CameraActivity.this);
 
-        progressDialog=new ProgressDialog(this);
+        progressDialog = new ProgressDialog(this);
 
         mTextureView = findViewById(R.id.textureView);
 
@@ -453,12 +457,34 @@ public class CameraActivity extends AppCompatActivity {
         });
     }
 
+    private void hideSystemUI() {
+        mdecorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
+    }
     private void stopRecord() {
 
+        progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         progressDialog.setMessage("Processing Please Wait");
         progressDialog.setCancelable(false);
+
+
+//        Window window = progressDialog.getWindow();
+//        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+//        window.getDecorView().setSystemUiVisibility(uiOptions);
+
+        mdecorView=progressDialog.getWindow().getDecorView();
+
         progressDialog.show();
+
+        hideSystemUI();
 
         countDownTimer.cancel();
 
@@ -504,7 +530,7 @@ public class CameraActivity extends AppCompatActivity {
         Log.e("OutputFile", mVideoFileName);
 
         // String cmd = "-y -i "+fileSavePath+" -vf drawtext=text="+MinMaxAvgList.get(0)+":x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:enable='between(t,5,10)' " +FFmPegOutput;
-       // String cmd = "-y -i " + fileSavePath + " -vf  fps=25 drawtext=text='Hello':x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:box=1:boxcolor=black@0.5:boxborderw=5:x=40:y=40:enable='between(t\\,1\\,5)' -c copy " + mVideoFileName;
+        // String cmd = "-y -i " + fileSavePath + " -vf  fps=25 drawtext=text='Hello':x=15:y=15:fontfile=/system/fonts/Roboto-Regular.ttf:fontsize=100:fontcolor=yellow:box=1:boxcolor=black@0.5:boxborderw=5:x=40:y=40:enable='between(t\\,1\\,5)' -c copy " + mVideoFileName;
 
         //String a = "-y -i " + fileSavePath + " -framerate 25 -vf [in]" + text() + "[out] " + mVideoFileName;
 
@@ -531,7 +557,6 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
         Log.e(TAG, "execFFmpegMergeVideo executionId-" + executionId);
-
 
 
     }
@@ -613,7 +638,7 @@ public class CameraActivity extends AppCompatActivity {
             editor.putString("Note", "");
             editor.apply();
 
-            File file1=new File(mTempVideoFileName);
+            File file1 = new File(mTempVideoFileName);
             file1.delete();
 
         }
@@ -658,9 +683,6 @@ public class CameraActivity extends AppCompatActivity {
             isSurfaceAvailable = true;
         }
     }
-
-
-
 
 
     private void toggleFlashMode(boolean flashStatus) {
@@ -756,6 +778,7 @@ public class CameraActivity extends AppCompatActivity {
                     MinMaxAvgList.add(Float.valueOf(Counter.getText().toString()));
                 }
             }
+
             @Override
             public void onFinish() {
                 countDown();
@@ -1086,7 +1109,7 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    private void startRecord()  {
+    private void startRecord() {
 
 
         try {
@@ -1125,14 +1148,14 @@ public class CameraActivity extends AppCompatActivity {
                     new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            mPreviewCaptureSession=cameraCaptureSession;
+                            mPreviewCaptureSession = cameraCaptureSession;
                             mRecordCaptureSession = cameraCaptureSession;
                             try {
                                 RecordingTimer();
                                 cameraCaptureSession.setRepeatingRequest(
                                         mCaptureRequestBuilder.build(), null, null);
                             } catch (CameraAccessException e) {
-                             }
+                            }
                         }
 
                         @Override
@@ -1166,9 +1189,9 @@ public class CameraActivity extends AppCompatActivity {
                 if (mIsRecording) {
                     seconds++;
                     recordingTime.setText(time);
-                    finalTime=recordingTime.getText().toString();
+                    finalTime = recordingTime.getText().toString();
                 } else {
-                   // recordingTime.setText("00:00:00");
+                    // recordingTime.setText("00:00:00");
                     recordingTime.setText(finalTime);
                 }
                 handler.postDelayed(this, 1000);
@@ -1325,8 +1348,7 @@ public class CameraActivity extends AppCompatActivity {
 
         try {
             createTempFFmPEGVideoFileName();
-        }catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
 
@@ -1340,7 +1362,7 @@ public class CameraActivity extends AppCompatActivity {
 //            camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
 //        }
 
-       camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+        camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
         int targetVideoBitRate = camcorderProfile.videoBitRate;
 
         mMediaRecorder.setOutputFile(mTempVideoFileName);
@@ -1353,8 +1375,8 @@ public class CameraActivity extends AppCompatActivity {
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 
 
-        System.out.println("Width : "+mVideoSize.getWidth()+" Height : "+mVideoSize.getHeight());
-        System.out.println("Width : "+camcorderProfile.videoFrameWidth+" Height : "+camcorderProfile.videoFrameHeight);
+        System.out.println("Width : " + mVideoSize.getWidth() + " Height : " + mVideoSize.getHeight());
+        System.out.println("Width : " + camcorderProfile.videoFrameWidth + " Height : " + camcorderProfile.videoFrameHeight);
 
 
 //        Camera mCamera = Camera.open();
@@ -1370,10 +1392,16 @@ public class CameraActivity extends AppCompatActivity {
 //
 //        System.out.println("Size Width : "+mSize.width +"Size Height : "+mSize.height);
 
-        mMediaRecorder.setVideoSize(1920, 1080);
+        if (mVideoSize.getWidth() < 1080) {
+            mMediaRecorder.setVideoSize(960, 720);
+        } else if (mVideoSize.getWidth() <= 1280) {
+            mMediaRecorder.setVideoSize(1280, 720);
+        } else {
+            mMediaRecorder.setVideoSize(1920, 1080);
+        }
 
 
-       // mMediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
+        //mMediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
         // mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
 
 
@@ -1397,15 +1425,11 @@ public class CameraActivity extends AppCompatActivity {
     }
 
 
-
-
     @Override
     public void onBackPressed() {
-        if(progressDialog.isShowing())
-        {
+        if (progressDialog.isShowing()) {
             Toast.makeText(this, "Please Wait Video Processing needs to complete", Toast.LENGTH_SHORT).show();
-        }else
-        {
+        } else {
             super.onBackPressed();
         }
 

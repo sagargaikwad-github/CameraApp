@@ -12,14 +12,17 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.eits.cameraappdesign.Interface.SortBy_Interface;
@@ -44,7 +47,11 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
     TextView folderEmpty;
     SortByAdapter sortByAdapter;
 
+    SharedPreferences sharedPreferences;
     VideoAdapter videoAdapter;
+
+    Parcelable state;
+    String SortBy;
 
     Context context;
     Button inspectionBTN, uploadBTN;
@@ -62,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         setContentView(R.layout.activity_main);
 
         sqliteModel = new SqliteModel(this);
-
 
         AllArrayListsData();
         findIds();
@@ -125,6 +131,15 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         getVideosList();
         checkVideoExistOrNot();
 
+        sharedPreferences = getSharedPreferences("Sort_by", MODE_PRIVATE);
+        String sortvia = sharedPreferences.getString("SortVia", "");
+     
+        if(sortvia!=null)
+        {
+            sortBy(sortvia);
+        }
+
+
     }
 
     private void checkVideoExistOrNot() {
@@ -148,12 +163,24 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         }
 
         if (!tempList.isEmpty()) {
-            folderEmpty.setVisibility(View.GONE);
-            displayFileDataRecyclerview.setVisibility(View.VISIBLE);
+            if (state!=null)
+            {
+                folderEmpty.setVisibility(View.GONE);
+                displayFileDataRecyclerview.setVisibility(View.VISIBLE);
 
-            displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
-            videoAdapter = new VideoAdapter(this, tempList);
-            displayFileDataRecyclerview.setAdapter(videoAdapter);
+                displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
+                videoAdapter = new VideoAdapter(this, tempList);
+                displayFileDataRecyclerview.setAdapter(videoAdapter);
+                displayFileDataRecyclerview.getLayoutManager().onRestoreInstanceState(state);
+            }else
+            {
+                folderEmpty.setVisibility(View.GONE);
+                displayFileDataRecyclerview.setVisibility(View.VISIBLE);
+
+                displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
+                videoAdapter = new VideoAdapter(this, tempList);
+                displayFileDataRecyclerview.setAdapter(videoAdapter);
+            }
         }else
         {
             folderEmpty.setVisibility(View.VISIBLE);
@@ -205,6 +232,8 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         inspectionBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
+
                 Intent intent = new Intent(MainActivity.this, FacilityActivity.class);
                 startActivity(intent);
             }
@@ -217,10 +246,12 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         });
     }
 
+
     private void AllArrayListsData() {
         sortBy_List.add(new sortBy_modelData("Date", false));
         sortBy_List.add(new sortBy_modelData("Filename", false));
         sortBy_List.add(new sortBy_modelData("Facility", false));
+
     }
 
     private void findIds() {
@@ -260,20 +291,25 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
     @Override
     public void sortBy(String s) {
+        SortBy=s;
+
         ArrayList<FileModel> dateSortList = new ArrayList<>(tempList);
         ArrayList<FileModel> filenameSortList = new ArrayList<>(tempList);
         ArrayList<FileModel> facilitySortList = new ArrayList<>(tempList);
 
         displayFileDataRecyclerview.setLayoutManager(new GridLayoutManager(context, 2));
         if (s == "Date") {
+            state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
             FindSortList(dateSortList, "Date");
             videoAdapter = new VideoAdapter(this, dateSortList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         } else if (s == "Filename") {
+            state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
             FindSortList(filenameSortList, "Filename");
             videoAdapter = new VideoAdapter(this, filenameSortList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         } else if (s == "Facility") {
+            state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
             FindSortList(facilitySortList, "Facility");
             videoAdapter = new VideoAdapter(this, facilitySortList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
@@ -281,6 +317,19 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
             videoAdapter = new VideoAdapter(this, tempList);
             displayFileDataRecyclerview.setAdapter(videoAdapter);
         }
+        displayFileDataRecyclerview.getLayoutManager().onRestoreInstanceState(state);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
+
+        sharedPreferences=getSharedPreferences("Sort_by",MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("SortVia", SortBy);
+        editor.apply();
+
     }
 
     @Override

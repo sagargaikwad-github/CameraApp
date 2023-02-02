@@ -4,13 +4,17 @@ package com.eits.cameraappdesign;
 import static android.content.ContentValues.TAG;
 import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +22,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,7 +52,7 @@ public class FacilityActivity extends AppCompatActivity {
     Parcelable recyclerViewState;
 
     SqliteModel sqliteModel;
-
+    View mdecorView ;
 
 
     @Override
@@ -53,9 +60,23 @@ public class FacilityActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_facility);
 
+        mdecorView=getWindow().getDecorView();
+
         sqliteModel=new SqliteModel(this);
 
+
     }
+    private void hideSystemUI() {
+        mdecorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+            }
+
 
     @Override
     protected void onResume() {
@@ -104,15 +125,22 @@ public class FacilityActivity extends AppCompatActivity {
                 } else {
                     recyclerViewState = facilityRV.getLayoutManager().onSaveInstanceState();
                 }
+
                 bottomSheetDialog();
-                getWindow().setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS);
+              //  getWindow().setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS);
             }
         });
 
     }
 
+    @SuppressLint("NewApi")
     private void bottomSheetDialog() {
+
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+
+        mdecorView=bottomSheetDialog.getWindow().getDecorView();
+        hideSystemUI();
+
 
         BottomSheetBehavior<View> bottomSheetBehavior;
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottomsheet_facility, null);
@@ -127,18 +155,21 @@ public class FacilityActivity extends AppCompatActivity {
         Button bottomSheetCancel = bottomSheetDialog.findViewById(R.id.bottomSheetCancel);
 
         bottomSheetDialog.show();
+        hideSystemUI();
+
 
         bottomSheetSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                hideSystemUI();
                 String facilityText = bottomSheetEditText.getText().toString().trim();
                 if (facilityText.isEmpty()) {
-
+                    Toast.makeText(FacilityActivity.this, "Facility Cannot be Empty", Toast.LENGTH_SHORT).show();
                 } else {
                      Boolean isDataAdded = sqliteModel.addInFacility(facilityText);
                      if(isDataAdded==true)
                      {
-                      //   Toast.makeText(FacilityActivity.this, "Facility Added", Toast.LENGTH_SHORT).show();
+                         Toast.makeText(FacilityActivity.this, "Facility Added", Toast.LENGTH_SHORT).show();
                      }
                     setAdapterData();
                     bottomSheetDialog.dismiss();
@@ -149,6 +180,7 @@ public class FacilityActivity extends AppCompatActivity {
         bottomSheetCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                hideSystemUI();
                 bottomSheetDialog.dismiss();
             }
         });
@@ -178,6 +210,7 @@ public class FacilityActivity extends AppCompatActivity {
         }
         return true;
     }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
