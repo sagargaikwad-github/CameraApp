@@ -3,10 +3,12 @@ package com.eits.cameraappdesign.model;
 public class FacilityModel {
     int facID;
     String facName;
+    String facLocation;
 
-    public FacilityModel(int facID, String facName) {
+    public FacilityModel(int facID, String facName, String facLocation) {
         this.facID = facID;
         this.facName = facName;
+        this.facLocation = facLocation;
     }
 
     public int getFacID() {
@@ -23,5 +25,13 @@ public class FacilityModel {
 
     public void setFacName(String facName) {
         this.facName = facName;
+    }
+
+    public String getFacLocation() {
+        return facLocation;
+    }
+
+    public void setFacLocation(String facLocation) {
+        this.facLocation = facLocation;
     }
 }

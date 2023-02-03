@@ -16,8 +16,8 @@
             style="@style/Widget.MaterialComponents.Toolbar.Primary"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Select Facility"
-            app:titleTextColor="@color/black"></com.google.android.material.appbar.MaterialToolbar>
+            app:title="Select Facilities"
+            app:titleTextColor="@color/textColorOnGreenBackground"></com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -61,7 +61,7 @@
             android:padding="10dp"
             android:text="Add \n Facilities"
             android:textAllCaps="false"
-            android:textColor="@color/black"
+            android:textColor="@color/textColorOnGreenBackground"
             android:textSize="15sp"
             app:cornerRadius="20dp" />
     </LinearLayout>

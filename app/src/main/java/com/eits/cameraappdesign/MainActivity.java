@@ -1,6 +1,7 @@
 package com.eits.cameraappdesign;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -14,20 +15,25 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.Settings;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.Toolbar;
+
 
 import com.eits.cameraappdesign.Interface.SortBy_Interface;
 import com.eits.cameraappdesign.adapter.SortByAdapter;
 import com.eits.cameraappdesign.adapter.VideoAdapter;
+import com.eits.cameraappdesign.model.FacilityModel;
 import com.eits.cameraappdesign.model.FileModel;
 import com.eits.cameraappdesign.model.SqliteModel;
 import com.eits.cameraappdesign.model.VideoModel;
@@ -52,14 +58,16 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
     Parcelable state;
     String SortBy;
+    int FacID;
 
     Context context;
-    Button inspectionBTN, uploadBTN;
+    Button componentBTN;
 
     ArrayList<sortBy_modelData> sortBy_List = new ArrayList<>();
 
     ArrayList<VideoModel> video_List = new ArrayList<>();
     ArrayList<FileModel> sqLiteArrayList = new ArrayList<>();
+    ArrayList<FacilityModel> getFacilityData = new ArrayList<>();
     ArrayList<FileModel> tempList = new ArrayList<>();
     SqliteModel sqliteModel;
 
@@ -70,10 +78,54 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
         sqliteModel = new SqliteModel(this);
 
+
         AllArrayListsData();
         findIds();
         buttonClicks();
         checkStoragePermissions();
+
+        Bundle getBundle = getIntent().getExtras();
+        FacID = getBundle.getInt("FacID");
+
+        configureToolBar();
+    }
+
+    private void configureToolBar() {
+        ArrayList<FacilityModel> facilityList = sqliteModel.getFacilityNameAndLocation(FacID);
+
+        Toolbar toolbar = findViewById(R.id.dashBoardToolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_back_vector);
+        toolbar.setTitleTextColor(Color.WHITE);
+
+        String FacilityName=facilityList.get(0).getFacName();
+        String FacilityLocation=facilityList.get(0).getFacLocation();
+
+        if(FacilityLocation.length()>10)
+        {
+            FacilityLocation=FacilityLocation.substring(0,10);
+            FacilityLocation=FacilityLocation+"...";
+        }
+
+        toolbar.setTitle(FacilityName+" - "+FacilityLocation);
+
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+              }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+
+        if (itemId == android.R.id.home) {
+            Toast.makeText(MainActivity.this, String.valueOf(itemId), Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return true;
     }
 
     private void checkStoragePermissions() {
@@ -84,17 +136,14 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
             } else {
                 requestPermissions(new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, REQUEST_STORAGE_ABOVE_R);
             }
-        }
-       else if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M)
-        {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 getVideosList();
                 checkVideoExistOrNot();
             } else {
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE_ABOVE_M);
             }
-        }else
-        {
+        } else {
         }
     }
 
@@ -106,17 +155,14 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 getVideosList();
                 checkVideoExistOrNot();
             } else {
-                    permissionDialog("Storage");
+                permissionDialog("Storage");
             }
         }
-        if (requestCode==REQUEST_STORAGE_ABOVE_M)
-        {
-            if (grantResults[0]==PackageManager.PERMISSION_GRANTED)
-            {
+        if (requestCode == REQUEST_STORAGE_ABOVE_M) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getVideosList();
                 checkVideoExistOrNot();
-            }else
-            {
+            } else {
             }
 
         }
@@ -133,9 +179,8 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
         sharedPreferences = getSharedPreferences("Sort_by", MODE_PRIVATE);
         String sortvia = sharedPreferences.getString("SortVia", "");
-     
-        if(sortvia!=null)
-        {
+
+        if (sortvia != null) {
             sortBy(sortvia);
         }
 
@@ -163,8 +208,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         }
 
         if (!tempList.isEmpty()) {
-            if (state!=null)
-            {
+            if (state != null) {
                 folderEmpty.setVisibility(View.GONE);
                 displayFileDataRecyclerview.setVisibility(View.VISIBLE);
 
@@ -172,8 +216,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 videoAdapter = new VideoAdapter(this, tempList);
                 displayFileDataRecyclerview.setAdapter(videoAdapter);
                 displayFileDataRecyclerview.getLayoutManager().onRestoreInstanceState(state);
-            }else
-            {
+            } else {
                 folderEmpty.setVisibility(View.GONE);
                 displayFileDataRecyclerview.setVisibility(View.VISIBLE);
 
@@ -181,8 +224,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                 videoAdapter = new VideoAdapter(this, tempList);
                 displayFileDataRecyclerview.setAdapter(videoAdapter);
             }
-        }else
-        {
+        } else {
             folderEmpty.setVisibility(View.VISIBLE);
             displayFileDataRecyclerview.setVisibility(View.GONE);
         }
@@ -205,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
             }
         }
     }
+
     private void permissionDialog(String name) {
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle(name + " permission Denied ")
@@ -229,19 +272,14 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
     }
 
     private void buttonClicks() {
-        inspectionBTN.setOnClickListener(new View.OnClickListener() {
+        componentBTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
 
-                Intent intent = new Intent(MainActivity.this, FacilityActivity.class);
+                Intent intent = new Intent(MainActivity.this, ComponentActivity.class);
+                intent.putExtra("FacID",FacID);
                 startActivity(intent);
-            }
-        });
-        uploadBTN.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
             }
         });
     }
@@ -249,16 +287,15 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
     private void AllArrayListsData() {
         sortBy_List.add(new sortBy_modelData("Date", false));
-        sortBy_List.add(new sortBy_modelData("Filename", false));
-        sortBy_List.add(new sortBy_modelData("Facility", false));
+//        sortBy_List.add(new sortBy_modelData("Filename", false));
+//        sortBy_List.add(new sortBy_modelData("Facility", false));
 
     }
 
     private void findIds() {
         sortByRecyclerView = findViewById(R.id.sortByRecyclerview);
         displayFileDataRecyclerview = findViewById(R.id.displayFileDataRecyclerview);
-        inspectionBTN = findViewById(R.id.inspectionBTN);
-        uploadBTN = findViewById(R.id.uploadBTN);
+        componentBTN = findViewById(R.id.componentBTN);
         folderEmpty = findViewById(R.id.folderEmptyTV);
     }
 
@@ -279,8 +316,8 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
                     return fileData.getFileName().compareTo(t1.getFileName());
                 }
                 if (name == "Facility") {
-                    String facname=sqliteModel.getFacilityName(fileData.getFacID());
-                    String facname2=sqliteModel.getFacilityName(t1.getFacID());
+                    String facname = sqliteModel.getFacilityName(fileData.getFacID());
+                    String facname2 = sqliteModel.getFacilityName(t1.getFacID());
 
                     return facname.compareTo(facname2);
                 }
@@ -291,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
 
     @Override
     public void sortBy(String s) {
-        SortBy=s;
+        SortBy = s;
 
         ArrayList<FileModel> dateSortList = new ArrayList<>(tempList);
         ArrayList<FileModel> filenameSortList = new ArrayList<>(tempList);
@@ -325,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements SortBy_Interface 
         super.onPause();
         state = displayFileDataRecyclerview.getLayoutManager().onSaveInstanceState();
 
-        sharedPreferences=getSharedPreferences("Sort_by",MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("Sort_by", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("SortVia", SortBy);
         editor.apply();

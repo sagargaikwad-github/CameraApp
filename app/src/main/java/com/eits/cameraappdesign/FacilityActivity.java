@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -83,7 +82,6 @@ public class FacilityActivity extends AppCompatActivity {
         super.onResume();
 
 
-        toolBar();
         findIds();
         buttonClicks();
 
@@ -149,8 +147,12 @@ public class FacilityActivity extends AppCompatActivity {
         bottomSheetBehavior = BottomSheetBehavior.from((View) bottomSheetView.getParent());
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
-        TextInputLayout bottomSheetLayout = bottomSheetView.findViewById(R.id.bottomSheetLayout);
-        TextInputEditText bottomSheetEditText = bottomSheetDialog.findViewById(R.id.bottomSheetET);
+        TextInputLayout bottomSheet_FacName_Layout = bottomSheetView.findViewById(R.id.bottomSheet_FacName_Layout);
+        TextInputEditText bottomSheet_FacName_ET = bottomSheetDialog.findViewById(R.id.bottomSheet_FacName_ET);
+
+        TextInputLayout bottomSheet_FacLocation_Layout = bottomSheetView.findViewById(R.id.bottomSheet_FacLocation_Layout);
+        TextInputEditText bottomSheet_FacLocation_ET = bottomSheetDialog.findViewById(R.id.bottomSheet_FacLocation_ET);
+
         Button bottomSheetSave = bottomSheetDialog.findViewById(R.id.bottomSheetSave);
         Button bottomSheetCancel = bottomSheetDialog.findViewById(R.id.bottomSheetCancel);
 
@@ -162,11 +164,12 @@ public class FacilityActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 hideSystemUI();
-                String facilityText = bottomSheetEditText.getText().toString().trim();
-                if (facilityText.isEmpty()) {
+                String facilityName = bottomSheet_FacName_ET.getText().toString().trim();
+                String facilityLocation = bottomSheet_FacLocation_ET.getText().toString().trim();
+                if (facilityName.isEmpty()) {
                     Toast.makeText(FacilityActivity.this, "Facility Cannot be Empty", Toast.LENGTH_SHORT).show();
                 } else {
-                     Boolean isDataAdded = sqliteModel.addInFacility(facilityText);
+                     Boolean isDataAdded = sqliteModel.addInFacility(facilityName,facilityLocation);
                      if(isDataAdded==true)
                      {
                          Toast.makeText(FacilityActivity.this, "Facility Added", Toast.LENGTH_SHORT).show();
@@ -195,11 +198,6 @@ public class FacilityActivity extends AppCompatActivity {
     }
 
 
-    private void toolBar() {
-        Toolbar toolbar = findViewById(R.id.facility_Toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(R.drawable.ic_back);
-    }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

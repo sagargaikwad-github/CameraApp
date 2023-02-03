@@ -113,7 +113,7 @@ public class CameraActivity extends AppCompatActivity {
     //and if true our surface texture and texture will be connect with camera
     boolean isSurfaceAvailable = false;
 
-    SharedPreferences sharedPreferences;
+    // SharedPreferences sharedPreferences;
 
     private static final int REQUEST_CAMERA_PERMISSION_RESULT = 100;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT = 200;
@@ -194,7 +194,9 @@ public class CameraActivity extends AppCompatActivity {
     Size mVideoSize;
 
     Size mImageSize;
-     View mdecorView;
+    View mdecorView;
+    int CompID, FacID;
+    String SiteLocation, Note;
     //private ImageReader mImageReader;
 //    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
 //        @Override
@@ -364,6 +366,12 @@ public class CameraActivity extends AppCompatActivity {
         //createSpeechRecognizer();
 
 
+        Bundle getValues = getIntent().getExtras();
+        CompID = getValues.getInt("CompID");
+        FacID = getValues.getInt("FacID");
+        SiteLocation = getValues.getString("SiteLocation");
+        Note = getValues.getString("Note");
+
         mRecordImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -427,6 +435,7 @@ public class CameraActivity extends AppCompatActivity {
                     stopRecord();
                 } else {
                     onBackPressed();
+                    onBackPressed();
                 }
             }
         });
@@ -467,6 +476,7 @@ public class CameraActivity extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
     }
+
     private void stopRecord() {
 
         progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -480,7 +490,7 @@ public class CameraActivity extends AppCompatActivity {
 //        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
 //        window.getDecorView().setSystemUiVisibility(uiOptions);
 
-        mdecorView=progressDialog.getWindow().getDecorView();
+        mdecorView = progressDialog.getWindow().getDecorView();
 
         progressDialog.show();
 
@@ -543,6 +553,11 @@ public class CameraActivity extends AppCompatActivity {
                 addDataInSqlite();
                 progressDialog.dismiss();
                 Toast.makeText(this, "Video Saved Sucessfully", Toast.LENGTH_SHORT).show();
+
+                //broadcastreceiever for finishing previous activity
+                Intent intent = new Intent("Component_Activity_finish");
+                sendBroadcast(intent);
+
                 onBackPressed();
             } else if (returnCode == Config.RETURN_CODE_CANCEL) {
                 Log.e(TAG, "Async command execution cancelled by user.");
@@ -557,16 +572,10 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
         Log.e(TAG, "execFFmpegMergeVideo executionId-" + executionId);
-
-
     }
 
     private void addDataInSqlite() {
-        Bundle getValues = getIntent().getExtras();
-        int CompID = getValues.getInt("CompID");
-        int FacID = getValues.getInt("FacID");
-        String SiteLocation = getValues.getString("SiteLocation");
-        String Note = getValues.getString("Note");
+
 
         String path = "/storage/emulated/0/Download/InspRec";
         String tempPath = null;
@@ -631,16 +640,15 @@ public class CameraActivity extends AppCompatActivity {
             String note = Note;
             sqliteModel.addInVideoFile(fileName, dateTime, compId, facId, siteLocation, max, min, average, fileSavePath, duration, note);
 
-            sharedPreferences = getSharedPreferences("Component_Written_Data", MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt("SpinnerPosition", 0);
-            editor.putString("SiteLocation", "");
-            editor.putString("Note", "");
-            editor.apply();
+//            sharedPreferences = getSharedPreferences("Component_Written_Data", MODE_PRIVATE);
+//            SharedPreferences.Editor editor = sharedPreferences.edit();
+//            editor.putInt("SpinnerPosition", 0);
+//            editor.putString("SiteLocation", "");
+//            editor.putString("Note", "");
+//            editor.apply();
 
             File file1 = new File(mTempVideoFileName);
             file1.delete();
-
         }
     }
 
@@ -727,30 +735,6 @@ public class CameraActivity extends AppCompatActivity {
 
 
         startBackgroundThread();
-
-        //createSpeechRecognizer();
-
-
-//        sharedPreferences = getSharedPreferences("SwitchBtnValue", MODE_PRIVATE);
-//        String btnCheck = sharedPreferences.getString("switch", "");
-//
-//        if (btnCheck.equals("true")) {
-//            switchMic.setChecked(true);
-//            mSpeechRecognizer.startListening(createIntent());
-//        } else {
-//            switchMic.setChecked(false);
-//            mSpeechRecognizer.stopListening();
-//            mSpeechRecognizer.cancel();
-//        }
-
-
-//        switchMic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-//                micStatus=b;
-//                checkVoicePermission();
-//            }
-//        });
 
 
         if (mTextureView.isAvailable()) {
@@ -852,12 +836,12 @@ public class CameraActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        sharedPreferences = getSharedPreferences("Component_Written_Data", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("SpinnerPosition", 0);
-        editor.putString("SiteLocation", "");
-        editor.putString("Note", "");
-        editor.apply();
+//        sharedPreferences = getSharedPreferences("Component_Written_Data", MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putInt("SpinnerPosition", 0);
+//        editor.putString("SiteLocation", "");
+//        editor.putString("Note", "");
+//        editor.apply();
 
         countDownTimer.cancel();
 

@@ -5,28 +5,58 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        style="@style/Widget.MaterialComponents.Toolbar.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="Add Facility"
+        app:titleTextColor="@color/textColorOnGreenBackground"></com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp">
+        android:layout_marginEnd="32dp"
+        android:orientation="vertical">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/bottomSheetLayout"
+            android:id="@+id/bottomSheet_FacName_Layout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Facilities Name">
+            android:hint="Enter Facility Name">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/bottomSheetET"
+                android:id="@+id/bottomSheet_FacName_ET"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
+                android:imeOptions="flagNoExtractUi"
+                android:singleLine="true"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/bottomSheet_FacLocation_Layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Facility Location">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/bottomSheet_FacLocation_ET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:imeOptions="flagNoExtractUi"
                 android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
+
     </LinearLayout>
 
     <LinearLayout
@@ -54,7 +84,7 @@
             android:backgroundTint="@color/primary_color"
             android:text="Save"
             android:textAllCaps="false"
-            android:textColor="@color/black"></Button>
+            android:textColor="@color/textColorOnGreenBackground"></Button>
     </LinearLayout>
 
 </LinearLayout>

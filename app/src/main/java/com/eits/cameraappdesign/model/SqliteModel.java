@@ -20,7 +20,7 @@ public class SqliteModel extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        String facility_table = "create table Facility(facId Integer Primary key Autoincrement, facName text)";
+        String facility_table = "create table Facility(facId Integer Primary key Autoincrement, facName text,facLocation text)";
         sqLiteDatabase.execSQL(facility_table);
 
         String component_table = "create table Component(compId Integer Primary key, compName text)";
@@ -66,10 +66,11 @@ public class SqliteModel extends SQLiteOpenHelper {
     }
 
     //Add data in Facility
-    public boolean addInFacility(String facilityText) {
+    public boolean addInFacility(String facilityName,String facilityLocation) {
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put("facName", facilityText);
+        cv.put("facName", facilityName);
+        cv.put("facLocation", facilityLocation);
 
         long res = sqLiteDatabase.insert("Facility", null, cv);
 
@@ -91,14 +92,17 @@ public class SqliteModel extends SQLiteOpenHelper {
             do {
                 int facId = cursor.getInt(0);
                 String facName = cursor.getString(1);
+                String facLocation=cursor.getString(2);
 
-                arrayList.add(new FacilityModel(facId, facName));
+                arrayList.add(new FacilityModel(facId, facName,facLocation));
             } while (cursor.moveToNext());
         } else {
 
         }
         return arrayList;
     }
+
+
 
 
     public boolean addInVideoFile(String fileName,
@@ -177,6 +181,26 @@ public class SqliteModel extends SQLiteOpenHelper {
         }
         return FacilityName;
     }
+
+    public ArrayList<FacilityModel> getFacilityNameAndLocation(int facID) {
+        ArrayList<FacilityModel> arrayList = new ArrayList<>();
+        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+
+        Cursor cursor = sqLiteDatabase.rawQuery("select * from Facility where facID=?", new String[]{String.valueOf(facID)});
+        if (cursor.moveToFirst()) {
+            do {
+                int facId = cursor.getInt(0);
+                String facName = cursor.getString(1);
+                String facLocation=cursor.getString(2);
+
+                arrayList.add(new FacilityModel(facId, facName,facLocation));
+            } while (cursor.moveToNext());
+        } else {
+
+        }
+        return arrayList;
+    }
+
 
     public String getComponentName(int compID) {
         String ComponentName=null;

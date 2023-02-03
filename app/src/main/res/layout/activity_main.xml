@@ -15,9 +15,7 @@
             android:id="@+id/dashBoardToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:layout_marginStart="20dp"
-            app:title="Dashboard"
-            app:titleTextColor="@color/text_black"></com.google.android.material.appbar.MaterialToolbar>
+            app:titleTextColor="@color/textColorOnGreenBackground"></com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
@@ -79,25 +77,15 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/inspectionBTN"
+                android:id="@+id/componentBTN"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:padding="2dp"
-                android:text="Start\nInsp"
+                android:text="Select Component"
                 android:textAllCaps="false"
-                android:textColor="@color/text_black"></Button>
-
-            <Button
-                android:id="@+id/uploadBTN"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:padding="2dp"
-                android:text="Upload"
-                android:textAllCaps="false"
-                android:textColor="@color/text_black"></Button>
+                android:textColor="@color/textColorOnGreenBackground"></Button>
+            utton>
         </LinearLayout>
 
 

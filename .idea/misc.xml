@@ -15,8 +15,9 @@
         <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/activity_facility.xml" value="0.22" />
         <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/activity_video_play.xml" value="0.20416666666666666" />
-        <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/bottomsheet_facility.xml" value="0.33" />
-        <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/facility_item.xml" value="0.47701149425287354" />
+        <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/bottomsheet_facility.xml" value="0.1" />
+        <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/bottomsheet_inspection.xml" value="0.22" />
+        <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/facility_item.xml" value="0.2" />
         <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/filedata_item.xml" value="0.33" />
         <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/fragment_bottom_sheet.xml" value="0.20416666666666666" />
         <entry key="..\:/Android Study/CameraAppDesign/app/src/main/res/layout/sort_by_item.xml" value="0.18" />
